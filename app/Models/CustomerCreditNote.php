@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\BelongsToBusiness;
+
+class CustomerCreditNote extends Model
+{
+    use HasFactory;
+    use BelongsToBusiness;
+
+    protected $fillable = ['user_id','business_id','credit_note_number','customer_id','credit_date','total_amount','reason'];
+
+    protected $casts = [
+        'credit_date' => 'date',
+        'total_amount' => 'decimal:2',
+    ];
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function business()
+    {
+        return $this->belongsTo(Business::class);
+    }
+}

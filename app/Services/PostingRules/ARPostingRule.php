@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Services\PostingRules;
+
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Arr;
+
+class ARPostingRule implements PostingRuleInterface
+{
+    public function name(): string
+    {
+        return 'AR';
+    }
+
+    public function validate(array $payload): array
+    {
+        $lines = $payload['lines'] ?? [];
+        $hasReceivable = false;
+
+        foreach ($lines as $i => $ln) {
+            // require customer_id on receivable (debit) lines
+            $debit = (float) Arr::get($ln, 'debit_amount', 0);
+            if ($debit > 0 && ! Arr::get($ln, 'customer_id')) {
+                throw ValidationException::withMessages(["lines.$i.customer_id" => 'Customer is required for receivable (debit) lines in AR postings.']);
+            }
+            if ($debit > 0 && Arr::get($ln, 'customer_id')) {
+                $hasReceivable = true;
+            }
+        }
+
+        if (! $hasReceivable) {
+            throw ValidationException::withMessages(['lines' => 'AR postings require at least one receivable line with customer linking.']);
+        }
+
+        return $payload;
+    }
+}
