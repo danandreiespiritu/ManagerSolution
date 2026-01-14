@@ -27,4 +27,21 @@ class CustomerCreditNote extends Model
     {
         return $this->belongsTo(Business::class);
     }
+
+    public function invoices()
+    {
+        return $this->belongsToMany(CustomerInvoice::class, 'customer_credit_note_invoices', 'customer_credit_note_id', 'customer_invoice_id')
+            ->withPivot('amount')
+            ->withTimestamps();
+    }
+
+    public function allocations()
+    {
+        return $this->hasMany(CustomerCreditNoteInvoice::class, 'customer_credit_note_id');
+    }
+
+    public function allocatedAmount(): float
+    {
+        return (float) $this->allocations()->sum('amount');
+    }
 }

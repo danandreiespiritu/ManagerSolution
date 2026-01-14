@@ -19,7 +19,6 @@
 						<td class="py-5 text-right pr-4">
 							<div class="inline-flex items-center gap-3">
 								@if($bizKey)
-									<a href="{{ route('business.edit', $bizKey) }}" class="text-sm text-gray-600 hover:text-gray-900">Edit</a>
 									<form action="{{ route('business.destroy', $bizKey) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this business?');" class="inline-block">
 										@csrf
 										@method('DELETE')

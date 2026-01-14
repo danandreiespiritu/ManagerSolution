@@ -180,6 +180,31 @@ Route::middleware('auth')->group(function () {
     // Reports index
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 
+    // Trial Balance (general ledger)
+    Route::prefix('/reports/general-ledger/trial-balance')->group(function () {
+        Route::get('/', [\App\Http\Controllers\TrialBalanceReportController::class, 'create'])->name('reports.general-ledger.trial-balance');
+        Route::get('/index', [\App\Http\Controllers\TrialBalanceReportController::class, 'index'])->name('reports.general-ledger.trial-balance.index');
+        Route::post('/', [\App\Http\Controllers\TrialBalanceReportController::class, 'store'])->name('reports.general-ledger.trial-balance.store');
+        Route::get('/{report}', [\App\Http\Controllers\TrialBalanceReportController::class, 'show'])->name('reports.general-ledger.trial-balance.show');
+    });
+
+    // General Ledger Summary
+    Route::prefix('/reports/general-ledger/summary')->group(function () {
+        Route::get('/', [\App\Http\Controllers\GeneralLedgerSummaryReportController::class, 'create'])->name('reports.general-ledger.summary');
+        Route::get('/index', [\App\Http\Controllers\GeneralLedgerSummaryReportController::class, 'index'])->name('reports.general-ledger.summary.index');
+        Route::post('/', [\App\Http\Controllers\GeneralLedgerSummaryReportController::class, 'store'])->name('reports.general-ledger.summary.store');
+        Route::get('/{report}', [\App\Http\Controllers\GeneralLedgerSummaryReportController::class, 'show'])->name('reports.general-ledger.summary.show');
+    });
+
+    // General Ledger Transactions (per-account transaction listing)
+    Route::prefix('/reports/general-ledger/transactions')->group(function () {
+        Route::get('/', [\App\Http\Controllers\GeneralLedgerTransactionsController::class, 'create'])->name('reports.general-ledger.transactions');
+        Route::get('/index', [\App\Http\Controllers\GeneralLedgerTransactionsController::class, 'index'])->name('reports.general-ledger.transactions.index');
+        Route::post('/', [\App\Http\Controllers\GeneralLedgerTransactionsController::class, 'store'])->name('reports.general-ledger.transactions.store');
+        Route::get('/{report}', [\App\Http\Controllers\GeneralLedgerTransactionsController::class, 'showSaved'])->name('reports.general-ledger.transactions.showSaved');
+        Route::get('/{report}/export', [\App\Http\Controllers\GeneralLedgerTransactionsController::class, 'export'])->name('reports.general-ledger.transactions.export');
+    });
+
     // Financial Statements: Profit & Loss (index route name used by views)
     Route::get('/reports/financial-statements/profit-and-loss', [ProfitAndLossReportController::class, 'index'])
         ->name('reports.financialStatements.profit-and-loss.index');
@@ -203,6 +228,56 @@ Route::middleware('auth')->group(function () {
         Route::get('/actual-and-budget/{report}', [\App\Http\Controllers\ProfitAndLossActualVsBudgetController::class, 'show'])->name('reports.financial.profit-and-loss.actual-and-budget.show');
         Route::get('/actual-and-budget/{report}/edit', [\App\Http\Controllers\ProfitAndLossActualVsBudgetController::class, 'edit'])->name('reports.financial.profit-and-loss.actual-and-budget.edit');
         Route::put('/actual-and-budget/{report}', [\App\Http\Controllers\ProfitAndLossActualVsBudgetController::class, 'update'])->name('reports.financial.profit-and-loss.actual-and-budget.update');
+    });
+
+    // Customer Summary routes
+    Route::prefix('/reports/customer-summary')->group(function () {
+        Route::get('/', [\App\Http\Controllers\CustomerSummaryReportController::class, 'index'])->name('reports.customer-summary.index');
+        Route::get('/create', [\App\Http\Controllers\CustomerSummaryReportController::class, 'create'])->name('reports.customer-summary.create');
+        Route::post('/', [\App\Http\Controllers\CustomerSummaryReportController::class, 'store'])->name('reports.customer-summary.store');
+        Route::get('/{report}', [\App\Http\Controllers\CustomerSummaryReportController::class, 'show'])->name('reports.customer-summary.show');
+    });
+
+    // Supplier Summary routes
+    Route::prefix('/reports/supplier-summary')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SupplierSummaryReportController::class, 'index'])->name('reports.supplier-summary.index');
+        Route::get('/create', [\App\Http\Controllers\SupplierSummaryReportController::class, 'create'])->name('reports.supplier-summary.create');
+        Route::post('/', [\App\Http\Controllers\SupplierSummaryReportController::class, 'store'])->name('reports.supplier-summary.store');
+        Route::get('/{report}', [\App\Http\Controllers\SupplierSummaryReportController::class, 'show'])->name('reports.supplier-summary.show');
+    });
+
+    // Customer statements (unpaid invoices)
+    Route::prefix('/reports/customers/statement-unpaid')->group(function () {
+        Route::get('/', [\App\Http\Controllers\CustomerStatementUnpaidController::class, 'create'])->name('reports.customers.statement-unpaid');
+        Route::get('/index', [\App\Http\Controllers\CustomerStatementUnpaidController::class, 'index'])->name('reports.customers.statement-unpaid.index');
+        Route::post('/generate', [\App\Http\Controllers\CustomerStatementUnpaidController::class, 'generate'])->name('reports.customers.statement-unpaid.generate');
+        Route::get('/{report}', [\App\Http\Controllers\CustomerStatementUnpaidController::class, 'show'])->name('reports.customers.statement-unpaid.show');
+        Route::get('/{report}/export', [\App\Http\Controllers\CustomerStatementUnpaidController::class, 'export'])->name('reports.customers.statement-unpaid.export');
+    });
+
+    // Customer statements (transactions)
+    Route::prefix('/reports/customers/statement-transactions')->group(function () {
+        Route::get('/', [\App\Http\Controllers\CustomerStatementTransactionsController::class, 'create'])->name('reports.customers.statement-transactions');
+        Route::get('/index', [\App\Http\Controllers\CustomerStatementTransactionsController::class, 'index'])->name('reports.customers.statement-transactions.index');
+        Route::post('/generate', [\App\Http\Controllers\CustomerStatementTransactionsController::class, 'generate'])->name('reports.customers.statement-transactions.generate');
+        Route::get('/{report}', [\App\Http\Controllers\CustomerStatementTransactionsController::class, 'show'])->name('reports.customers.statement-transactions.show');
+    });
+
+    // Supplier statements (unpaid bills)
+    Route::prefix('/reports/suppliers/statement-unpaid')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SupplierStatementUnpaidController::class, 'create'])->name('reports.suppliers.statement-unpaid');
+        Route::get('/index', [\App\Http\Controllers\SupplierStatementUnpaidController::class, 'index'])->name('reports.suppliers.statement-unpaid.index');
+        Route::post('/generate', [\App\Http\Controllers\SupplierStatementUnpaidController::class, 'generate'])->name('reports.suppliers.statement-unpaid.generate');
+        Route::get('/{report}', [\App\Http\Controllers\SupplierStatementUnpaidController::class, 'show'])->name('reports.suppliers.statement-unpaid.show');
+        Route::get('/{report}/export', [\App\Http\Controllers\SupplierStatementUnpaidController::class, 'export'])->name('reports.suppliers.statement-unpaid.export');
+    });
+
+    // Supplier statements (transactions)
+    Route::prefix('/reports/suppliers/statement-transactions')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SupplierStatementTransactionsController::class, 'create'])->name('reports.suppliers.statement-transactions');
+        Route::get('/index', [\App\Http\Controllers\SupplierStatementTransactionsController::class, 'index'])->name('reports.suppliers.statement-transactions.index');
+        Route::post('/generate', [\App\Http\Controllers\SupplierStatementTransactionsController::class, 'generate'])->name('reports.suppliers.statement-transactions.generate');
+        Route::get('/{report}', [\App\Http\Controllers\SupplierStatementTransactionsController::class, 'show'])->name('reports.suppliers.statement-transactions.show');
     });
 });
 require __DIR__.'/auth.php';

@@ -17,6 +17,8 @@ use App\Models\CustomerCreditNote;
 use App\Models\SupplierDebitNote;
 use App\Repositories\ProfitAndLossReport\IProfitAndLossReportRepository;
 use App\Repositories\ProfitAndLossReport\ProfitAndLossReportRepository;
+use App\Repositories\TrialBalanceReport\ITrialBalanceReportRepository;
+use App\Repositories\TrialBalanceReport\TrialBalanceReportRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -61,6 +63,15 @@ class AppServiceProvider extends ServiceProvider
 
         // Profit & Loss report repository
         $this->app->bind(IProfitAndLossReportRepository::class, ProfitAndLossReportRepository::class);
+
+        // Trial Balance report repository
+        $this->app->bind(ITrialBalanceReportRepository::class, TrialBalanceReportRepository::class);
+
+        // General Ledger Summary report repository
+        $this->app->bind(
+            \App\Repositories\GeneralLedgerSummaryReport\IGeneralLedgerSummaryReportRepository::class,
+            \App\Repositories\GeneralLedgerSummaryReport\GeneralLedgerSummaryReportRepository::class
+        );
 
         // Chart of Accounts repository
         $this->app->bind(\App\Repositories\ChartofAccounts\IChartofAccountsRepository::class, \App\Repositories\ChartofAccounts\ChartofAccountsRepository::class);

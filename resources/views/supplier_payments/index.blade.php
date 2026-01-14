@@ -116,7 +116,7 @@
                     <input
                         name="payment_date"
                         id="payment_date"
-                        type="text"
+                        type="date"
                         placeholder="Select date"
                         class="cursor-pointer mt-1 p-2 w-full border border-gray-300 rounded bg-white text-gray-900 shadow-sm"
                     />

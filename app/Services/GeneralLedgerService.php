@@ -79,4 +79,99 @@ class GeneralLedgerService
             'accounts' => $accounts,
         ];
     }
+
+    /**
+     * Return general ledger summary per account including beginning balance, period totals and lines.
+     *
+     * @param int|null $businessId
+     * @param string|null $from
+     * @param string|null $to
+     * @param bool $excludeZero
+     * @return \Illuminate\Support\Collection
+     */
+    public function getGeneralLedgerSummary(?int $businessId = null, ?string $from = null, ?string $to = null, bool $excludeZero = false)
+    {
+        // load accounts for the business
+        $accountsQuery = DB::table('chart_of_accounts')->when($businessId, fn($q) => $q->where('business_id', $businessId))->orderBy('account_code');
+        $acctRows = $accountsQuery->get();
+
+        $results = collect();
+
+        foreach ($acctRows as $acct) {
+            $accountId = $acct->id;
+
+            // beginning balance: entries before from date
+            $beginning = 0.0;
+            if ($from) {
+                $beginning = (float) DB::table('journal_entry_lines as l')
+                    ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+                    ->where('l.account_id', $accountId)
+                    ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+                    ->where('e.entry_date', '<', $from)
+                    ->select(DB::raw('COALESCE(SUM(l.debit_amount - l.credit_amount),0) as bal'))
+                    ->value('bal');
+            }
+
+            // period totals and lines
+            $periodQuery = DB::table('journal_entry_lines as l')
+                ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+                ->where('l.account_id', $accountId)
+                ->when($businessId, fn($q) => $q->where('l.business_id', $businessId));
+
+            if ($from) {
+                $periodQuery->where('e.entry_date', '>=', $from);
+            }
+            if ($to) {
+                $periodQuery->where('e.entry_date', '<=', $to);
+            }
+
+            $periodLines = $periodQuery->select('l.*', 'e.entry_date', 'e.description as entry_description')
+                ->orderBy('e.entry_date')
+                ->orderBy('l.id')
+                ->get();
+
+            $totalDebit = (float) $periodLines->sum('debit_amount');
+            $totalCredit = (float) $periodLines->sum('credit_amount');
+
+            $running = $beginning;
+            $lines = $periodLines->map(function ($l) use (&$running) {
+                $debit = (float) ($l->debit_amount ?? 0);
+                $credit = (float) ($l->credit_amount ?? 0);
+                $running = $running + $debit - $credit;
+
+                return (object) [
+                    'date' => $l->entry_date ? date('Y-m-d', strtotime($l->entry_date)) : null,
+                    'explanation' => $l->description ?? $l->entry_description ?? null,
+                    'ref' => $l->journal_entry_id,
+                    'debit' => $debit,
+                    'credit' => $credit,
+                    'balance' => $running,
+                ];
+            });
+
+            $ending = $beginning + $totalDebit - $totalCredit;
+
+            if ($excludeZero && abs($beginning) < 0.005 && abs($totalDebit) < 0.005 && abs($totalCredit) < 0.005) {
+                continue;
+            }
+
+            $results->push((object) [
+                'account_id' => $accountId,
+                // provide backward-compatible aliases expected by views
+                'account_name' => $acct->account_name ?? null,
+                'account_code' => $acct->account_code ?? null,
+                'name' => $acct->account_name ?? null,
+                'code' => $acct->account_code ?? null,
+                'classification' => $acct->classification ?? null,
+                'beginning_balance' => (float) $beginning,
+                'total_debit' => $totalDebit,
+                'total_credit' => $totalCredit,
+                'net_movement' => $totalDebit - $totalCredit,
+                'ending_balance' => (float) $ending,
+                'lines' => $lines,
+            ]);
+        }
+
+        return $results;
+    }
 }

@@ -32,14 +32,6 @@
                         <span>Export CSV</span>
                     </a>
 
-                    <!-- Print -->
-                    <button onclick="window.print()"
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg 
-                                   hover:bg-gray-800 transition shadow-sm">
-                        <i class="fas fa-print"></i>
-                        <span>Print</span>
-                    </button>
-
                 </div>
             </div>
         </div>

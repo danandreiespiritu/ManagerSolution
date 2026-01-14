@@ -16,7 +16,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class=" bg-gray-100 text-white min-h-screen font-sans">
+<body class=" bg-gray-100 text-black min-h-screen font-sans">
 
     @include('components.sidebar')
     @include('layouts.navigation')

@@ -26,6 +26,21 @@
     </div>
 
     <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        @if(session('success'))
+            <div class="mb-4 p-3 bg-green-50 text-green-700 border border-green-100 rounded">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="mb-4 p-3 bg-red-50 text-red-700 border border-red-100 rounded">{{ session('error') }}</div>
+        @endif
+        @if($errors->any())
+            <div class="mb-4 p-3 bg-yellow-50 text-yellow-800 border border-yellow-100 rounded">
+                <ul class="list-disc pl-5">
+                    @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <div class="overflow-auto">
             <table class="w-full text-sm">
                 <thead class="text-left text-gray-700 text-xs uppercase border-b">
@@ -105,7 +120,7 @@
                         required>
                     <option value="">Select supplier</option>
                     @foreach($suppliers ?? [] as $s)
-                        <option value="{{ $s->id }}">{{ $s->supplier_name }}</option>
+                        <option value="{{ $s->id }}" {{ old('supplier_id') == $s->id ? 'selected' : '' }}>{{ $s->supplier_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -114,31 +129,33 @@
 
                 <div>
                     <label class="text-xs text-gray-700">Bill Number</label>
-                    <input name="bill_number"
-                           class="mt-1 p-2 w-full bg-white border border-gray-300 rounded shadow-sm text-gray-900"
-                           required />
+                          <input name="bill_number"
+                              value="{{ old('bill_number') }}"
+                              class="mt-1 p-2 w-full bg-white border border-gray-300 rounded shadow-sm text-gray-900"
+                              required />
                 </div>
 
                 <div>
                     <label class="text-xs text-gray-700">Bill Date</label>
                     <input name="bill_date" id="bill_date"
                         class="mt-1 p-2 w-full bg-white border border-gray-300 rounded shadow-sm text-gray-900 cursor-pointer"
-                        type="text" placeholder="Select date" />
+                        type="date" placeholder="Select date" value="{{ old('bill_date') }}" />
                 </div>
 
                 <div>
                     <label class="text-xs text-gray-700">Due Date (optional)</label>
                     <input name="due_date" id="due_date"
                         class="mt-1 p-2 w-full bg-white border border-gray-300 rounded shadow-sm text-gray-900 cursor-pointer"
-                        type="text" placeholder="Select date" />
+                        type="date" placeholder="Select date" value="{{ old('due_date') }}" />
                 </div>
 
 
                 <div>
                     <label class="text-xs text-gray-700">Total Amount</label>
-                    <input name="total_amount"
-                           class="mt-1 p-2 w-full bg-white border border-gray-300 rounded shadow-sm text-gray-900"
-                           required />
+                          <input name="total_amount"
+                              value="{{ old('total_amount') }}"
+                              class="mt-1 p-2 w-full bg-white border border-gray-300 rounded shadow-sm text-gray-900"
+                              required />
                 </div>
 
                 <div>
@@ -148,7 +165,7 @@
                             required>
                         <option value="">Select account</option>
                         @foreach($accounts as $a)
-                            <option value="{{ $a->id }}">{{ $a->account_name }}</option>
+                            <option value="{{ $a->id }}" {{ old('expense_account_id') == $a->id ? 'selected' : '' }}>{{ $a->account_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -160,7 +177,7 @@
                             required>
                         <option value="">Select account</option>
                         @foreach($accounts as $a)
-                            <option value="{{ $a->id }}">{{ $a->account_name }}</option>
+                            <option value="{{ $a->id }}" {{ old('ap_account_id') == $a->id ? 'selected' : '' }}>{{ $a->account_name }}</option>
                         @endforeach
                     </select>
                 </div>

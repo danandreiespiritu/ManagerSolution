@@ -109,11 +109,6 @@
         </div>
 
         <div class="py-2">
-            <a href="{{ route('dashboard') }}" 
-               class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 
-                      {{ request()->routeIs('dashboard') ? 'bg-white/5 text-white' : '' }}">
-                Dashboard
-            </a>
             <a href="{{ route('profile.edit') }}" 
                class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
                 Profile

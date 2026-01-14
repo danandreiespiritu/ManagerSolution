@@ -39,7 +39,6 @@
                         <th class="py-3 px-4 text-left font-semibold">Name</th>
                         <th class="py-3 px-4 text-left font-semibold">Email</th>
                         <th class="py-3 px-4 text-left font-semibold">Code</th>
-                        <th class="py-3 px-4 text-right font-semibold">Balance</th>
                         <th class="py-3 px-4 text-center font-semibold">Actions</th>
                     </tr>
                 </thead>
@@ -58,10 +57,6 @@
 
                             <td class="py-3 px-4 text-gray-700">
                                 {{ $supplier->supplier_code }}
-                            </td>
-
-                            <td class="py-3 px-4 text-right text-gray-700">
-                                {{ $supplier->balance ?? '—' }}
                             </td>
 
                             <td class="py-3 px-4 text-center">
@@ -184,21 +179,6 @@
                         placeholder="name@example.com"
                     />
                     @error('email')
-                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Balance -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-600">Balance</label>
-                    <input
-                        name="balance"
-                        value="{{ old('balance') }}"
-                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm
-                            focus:border-blue-500 focus:ring-blue-500 bg-white px-3 py-2"
-                        placeholder="0.00"
-                    />
-                    @error('balance')
                     <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>

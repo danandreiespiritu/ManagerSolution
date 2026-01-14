@@ -1,76 +1,142 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-200 leading-tight">Edit Payment</h2>
-    </x-slot>
-
-    <div class="py-6 text-white">
+    <div class="py-10">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-gray-800 p-6 rounded">
-                @if(session('success'))
-                    <div class="mb-4 p-3 bg-green-600 text-white rounded">{{ session('success') }}</div>
-                @endif
-                @if(session('error'))
-                    <div class="mb-4 p-3 bg-red-600 text-white rounded">{{ session('error') }}</div>
-                @endif
-                @if($errors->any())
-                    <div class="mb-4 p-3 bg-red-600 text-white rounded">
-                        <ul class="list-disc pl-5">
-                            @foreach($errors->all() as $err)
-                                <li>{{ $err }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
 
-                <form method="POST" action="{{ route('payments.update', $payment->id) }}">
+            <!-- Title -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Edit Payment</h1>
+                <p class="text-gray-600 text-sm mt-1">
+                    Update payment information in a clean and organized layout.
+                </p>
+            </div>
+
+            <!-- Alerts -->
+            @if(session('success'))
+                <div class="mb-4 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-4 p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-4 p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+                    <ul class="list-disc ml-5 text-sm">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <!-- Main Form Card -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow p-8">
+
+                <form method="POST" action="{{ route('payments.update', $payment->id) }}" class="space-y-8">
                     @csrf
                     @method('PUT')
 
-                    <div class="grid grid-cols-12 gap-4">
-                        <div class="col-span-4">
-                            <label class="block text-sm text-white">Date</label>
-                            <input type="date" name="payment_date" value="{{ old('payment_date', $payment->payment_date?->format('Y-m-d')) }}" class="w-full border rounded px-3 py-2 text-white">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        <!-- Date -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                            <input 
+                                type="date"
+                                name="payment_date"
+                                value="{{ old('payment_date', $payment->payment_date?->format('Y-m-d')) }}"
+                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
                         </div>
-                        <div class="col-span-4">
-                            <label class="block text-sm text-white">Customer</label>
-                            <select name="customer_id" class="w-full border rounded px-3 py-2">
+
+                        <!-- Customer -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                            <select 
+                                name="customer_id"
+                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
                                 <option value="">-- Select customer --</option>
                                 @foreach($customers as $c)
-                                    <option class="text-black" value="{{ $c->id }}" @selected(old('customer_id', $payment->customer_id) == $c->id)>{{ $c->customer_name }}</option>
+                                    <option 
+                                        value="{{ $c->id }}"
+                                        @selected(old('customer_id', $payment->customer_id) == $c->id)
+                                    >
+                                        {{ $c->customer_name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-span-4">
-                            <label class="block text-sm text-white">Amount</label>
-                            <input type="text" name="amount" value="{{ old('amount', $payment->amount) }}" class="w-full border rounded px-3 py-2 text-white">
+
+                        <!-- Amount -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <input 
+                                type="text"
+                                name="amount"
+                                value="{{ old('amount', $payment->amount) }}"
+                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
                         </div>
 
-                        <div class="col-span-4">
-                            <label class="block text-sm text-white">Payment Type</label>
-                            <select name="payment_type" class="w-full border rounded px-3 py-2 text-white">
-                                <option class="text-black" value="Customer" @selected(old('payment_type', $payment->payment_type) == 'Customer')>Customer</option>
-                                <option class="text-black" value="Supplier" @selected(old('payment_type', $payment->payment_type) == 'Supplier')>Supplier</option>
+                        <!-- Payment Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label>
+                            <select 
+                                name="payment_type"
+                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="Customer" @selected(old('payment_type', $payment->payment_type) == 'Customer')>
+                                    Customer
+                                </option>
+                                <option value="Supplier" @selected(old('payment_type', $payment->payment_type) == 'Supplier')>
+                                    Supplier
+                                </option>
                             </select>
                         </div>
 
-                        <div class="col-span-8">
-                            <label class="block text-sm text-white">Reference</label>
-                            <input type="text" name="reference" value="{{ old('reference', $payment->reference) }}" class="w-full border rounded px-3 py-2 text-white">
+                        <!-- Reference -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Reference</label>
+                            <input 
+                                type="text"
+                                name="reference"
+                                value="{{ old('reference', $payment->reference) }}"
+                                class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
                         </div>
+
                     </div>
 
-                    <div class="mt-6 flex items-center justify-between">
-                        <a href="{{ route('payments.show', $payment->id) }}" class="px-4 py-2 border rounded">Cancel</a>
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 rounded">Save Changes</button>
-                    </div>
-
+                    <!-- Notice: Allocations cannot be edited here -->
                     @if($payment->invoicePayments->count())
-                        <div class="mt-6 text-sm text-gray-300">
-                            Allocations exist for this payment. Editing allocations is not supported here.
+                        <div class="mt-6 p-4 bg-gray-50 border border-gray-300 text-gray-700 rounded-lg text-sm">
+                            This payment has existing invoice allocations. Editing allocations is not available on this screen.
                         </div>
                     @endif
+
+                    <!-- Buttons -->
+                    <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+
+                        <a href="{{ route('payments.show', $payment->id) }}"
+                           class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-200 transition">
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
+                            Save Changes
+                        </button>
+
+                    </div>
+
                 </form>
             </div>
+
         </div>
     </div>
 </x-app-layout>

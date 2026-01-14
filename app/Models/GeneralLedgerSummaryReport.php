@@ -12,9 +12,11 @@ class GeneralLedgerSummaryReport extends Model
     use BelongsToBusiness;
 
     protected $fillable = [
+        'title',
         'user_id',
         'business_id',
         'description',
+        'account_id',
         'from_date',
         'to_date',
         'show_codes',

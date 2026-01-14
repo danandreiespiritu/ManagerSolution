@@ -1,32 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $report->title ?? 'Trial Balance' }}</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
-@include('user.components.navbar')
-<div class="flex min-h-screen bg-gray-50">
-    @include('user.components.sidebar')
-    <main class="flex-1 p-6">
-        <div class="max-w-5xl mx-auto">
-            <div class="bg-white shadow-sm rounded border">
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ $report->title ?? 'Trial Balance' }}
+        </h2>
+        <p class="text-sm text-gray-600">
+            Method:
+            <span class="capitalize">{{ $report->method }}</span>
+            |
+            Period:
+            {{ optional($report->from_date)->toDateString() }} -
+            {{ optional($report->to_date)->toDateString() }}
+        </p>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white shadow-sm rounded-lg border">
+
+                <!-- Action Bar -->
                 <div class="px-6 py-4 border-b flex items-center justify-between">
-                    <div>
-                        <h1 class="text-xl font-semibold">{{ $report->title ?? 'Trial Balance' }}</h1>
-                        <p class="text-sm text-gray-600">Method: <span class="capitalize">{{ $report->method }}</span> | Period: {{ optional($report->from_date)->toDateString() }} - {{ optional($report->to_date)->toDateString() }}</p>
-                    </div>
-                    <a href="{{ route('reports.general-ledger.trial-balance.index') }}" class="text-blue-600">Back to list</a>
+                    <div></div>
+                    <a href="{{ route('reports.general-ledger.trial-balance.index') }}"
+                       class="text-blue-600 hover:text-blue-700 transition">
+                        Back to list
+                    </a>
                 </div>
+
+                <!-- Table -->
                 <div class="px-6 py-6">
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
@@ -39,9 +39,10 @@
                                     <th class="px-4 py-2 text-center">Status</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 @foreach($rows as $row)
-                                    <tr class="border-t">
+                                    <tr class="border-t hover:bg-gray-50 transition">
                                         <td class="px-4 py-2">{{ $row->code }}</td>
                                         <td class="px-4 py-2">{{ $row->name }}</td>
                                         <td class="px-4 py-2 text-right">{{ number_format($row->debit, 2) }}</td>
@@ -56,6 +57,7 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+
                             <tfoot>
                                 <tr class="border-t bg-gray-50 font-semibold">
                                     <td class="px-4 py-2" colspan="2">Total</td>
@@ -73,9 +75,8 @@
                         </table>
                     </div>
                 </div>
+
             </div>
         </div>
-    </main>
-</div>
-</body>
-</html>
+    </div>
+</x-app-layout>

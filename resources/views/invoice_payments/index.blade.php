@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-6">
+    <div class="py-6 text-black">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
@@ -75,8 +75,16 @@
                     @csrf
 
                     <div class="grid grid-cols-12 gap-4">
-                        <div class="col-span-6">
-                            <label class="block text-sm text-white">Payment</label>
+                        <div class="col-span-12">
+                            <label class="block text-sm text-black">Allocation Type</label>
+                            <select id="allocation_type" name="allocation_type" class="w-64 border rounded px-3 py-2">
+                                <option value="payment" @selected(old('allocation_type') == 'payment')>Payment</option>
+                                <option value="credit" @selected(old('allocation_type') == 'credit')>Credit Note</option>
+                            </select>
+                        </div>
+
+                        <div class="col-span-6" id="payment_select">
+                            <label class="block text-sm text-black">Payment</label>
                             <select name="payment_id" class="w-full border rounded px-3 py-2">
                                 <option value="">-- Select payment --</option>
                                 @foreach($payments as $p)
@@ -86,8 +94,20 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        <div class="col-span-6" id="credit_select">
+                            <label class="block text-sm text-black">Credit Note</label>
+                            <select name="customer_credit_note_id" class="w-full border rounded px-3 py-2">
+                                <option value="">-- Select credit note --</option>
+                                @foreach($creditNotes ?? [] as $cn)
+                                    <option class="text-black" value="{{ $cn->id }}" @selected(old('customer_credit_note_id') == $cn->id)>
+                                        #{{ $cn->id }} — {{ $cn->credit_date?->format('Y-m-d') }} — {{ $cn->customer?->customer_name ?? '—' }} — Unalloc: {{ number_format(((float)$cn->total_amount - ($cn->allocatedAmount() ?? 0)),2) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-span-6">
-                            <label class="block text-sm text-white">Invoice</label>
+                            <label class="block text-sm text-black">Invoice</label>
                             <select name="customer_invoice_id" class="w-full border rounded px-3 py-2">
                                 <option value="">-- Select invoice --</option>
                                 @foreach($invoices as $inv)
@@ -98,16 +118,45 @@
                             </select>
                         </div>
                         <div class="col-span-6">
-                            <label class="block text-sm text-white">Amount</label>
-                            <input type="text" name="amount" value="{{ old('amount') }}" class="w-full border rounded px-3 py-2 text-white" placeholder="0.00">
+                            <label class="block text-sm text-black">Amount</label>
+                            <input type="text" name="amount" value="{{ old('amount') }}" class="w-full border rounded px-3 py-2 text-black" placeholder="0.00">
                         </div>
                     </div>
 
                     <div class="mt-4">
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 rounded">Save</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 rounded text-white">Save</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const type = document.getElementById('allocation_type');
+    if (!type) return;
+
+    const paymentWrap = document.getElementById('payment_select');
+    const creditWrap = document.getElementById('credit_select');
+
+    function update() {
+        const v = type.value;
+        if (v === 'payment') {
+            if (paymentWrap) paymentWrap.style.display = '';
+            if (creditWrap) creditWrap.style.display = 'none';
+            // enable/disable selects
+            paymentWrap?.querySelector('select')?.removeAttribute('disabled');
+            creditWrap?.querySelector('select')?.setAttribute('disabled', 'disabled');
+        } else if (v === 'credit') {
+            if (paymentWrap) paymentWrap.style.display = 'none';
+            if (creditWrap) creditWrap.style.display = '';
+            paymentWrap?.querySelector('select')?.setAttribute('disabled', 'disabled');
+            creditWrap?.querySelector('select')?.removeAttribute('disabled');
+        }
+    }
+
+    type.addEventListener('change', update);
+    update();
+});
+</script>

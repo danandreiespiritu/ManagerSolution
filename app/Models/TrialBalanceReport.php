@@ -16,16 +16,15 @@ class TrialBalanceReport extends Model
         'business_id',
         'title',
         'description',
-        'method',
-        'from_date',
-        'to_date',
-        'comparative_columns',
+        'date_from',
+        'date_to',
+        'accounting_method',
+        'footer',
     ];
 
     protected $casts = [
-        'from_date' => 'date',
-        'to_date' => 'date',
-        'comparative_columns' => 'array',
+        'date_from' => 'date',
+        'date_to' => 'date',
     ];
 
     public function user()

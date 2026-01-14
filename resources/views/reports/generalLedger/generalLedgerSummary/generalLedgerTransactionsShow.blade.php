@@ -1,20 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>General Ledger Transactions</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="preconnect" href="https://fonts.bunny.net">
-  <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
-@include('user.components.navbar')
+<x-app-layout>
 <div class="flex min-h-screen bg-gray-50">
-  @include('user.components.sidebar')
   <main class="flex-1 p-6">
     <div class="max-w-5xl mx-auto">
       <div class="bg-white shadow-sm rounded border">
@@ -72,7 +57,7 @@
                         <span class="text-red-600 font-medium">Unbalanced</span>
                       @endif
                     </td>
-                    <td class="px-4 py-2"><a class="text-indigo-600" href="{{ route('journal_entries.edit', $e->entry_id) }}">Open</a></td>
+
                   </tr>
                 @empty
                   <tr><td colspan="9" class="px-4 py-6 text-center text-gray-500">No entries for the selected criteria.</td></tr>
@@ -117,5 +102,4 @@
     </div>
   </main>
 </div>
-</body>
-</html>
+</x-app-layout>
