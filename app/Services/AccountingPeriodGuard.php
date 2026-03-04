@@ -29,6 +29,19 @@ class AccountingPeriodGuard
             if ($businessId && $period->business_id != $businessId) {
                 throw ValidationException::withMessages(['accounting_period_id' => 'Selected accounting period does not belong to the selected business.']);
             }
+            // if an entry date was provided, ensure it falls within the selected period (inclusive)
+            if ($entryDate) {
+                try {
+                    $ed = \Carbon\Carbon::parse($entryDate)->startOfDay();
+                    $start = $period->start_date->startOfDay();
+                    $end = $period->end_date->endOfDay();
+                    if (! $ed->betweenIncluded($start, $end)) {
+                        throw ValidationException::withMessages(['entry_date' => 'Entry date must be within the selected accounting period.']);
+                    }
+                } catch (\Exception $e) {
+                    throw ValidationException::withMessages(['entry_date' => 'Invalid entry date.']);
+                }
+            }
             return;
         }
 

@@ -13,12 +13,23 @@
                 </div>
 
                 <div class="mb-4">
-                    <h3 class="font-semibold">Lines</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold">Lines</h3>
+                        @php
+                            $isUnbalanced = $entry->hasImbalance();
+                            $imbalance = $entry->getImbalanceAmount();
+                        @endphp
+                        @if(! $isUnbalanced)
+                            <span class="text-sm px-3 py-1 bg-green-100 text-green-800 rounded">Balanced</span>
+                        @else
+                            <span class="text-sm px-3 py-1 bg-red-100 text-red-800 rounded">Unbalanced ({{ number_format(abs($imbalance),2) }})</span>
+                        @endif
+                    </div>
                     <table class="w-full text-sm mt-2">
                         <thead>
                             <tr class="text-left text-xs text-gray-500">
                                 <th class="px-2">Account</th>
-                                <th class="px-2">Description</th>
+                                <th class="px-2">Account Code</th>
                                 <th class="px-2 text-right">Debit</th>
                                 <th class="px-2 text-right">Credit</th>
                             </tr>
@@ -27,7 +38,7 @@
                             @foreach($entry->lines as $ln)
                                 <tr class="border-t">
                                     <td class="px-2 py-2">{{ optional($ln->account)->account_name }}</td>
-                                    <td class="px-2 py-2">{{ $ln->description ?? '' }}</td>
+                                    <td class="px-2 py-2">{{ optional($ln->account)->account_code }}</td>
                                     <td class="px-2 py-2 text-right">{{ number_format($ln->debit_amount,2) }}</td>
                                     <td class="px-2 py-2 text-right">{{ number_format($ln->credit_amount,2) }}</td>
                                 </tr>

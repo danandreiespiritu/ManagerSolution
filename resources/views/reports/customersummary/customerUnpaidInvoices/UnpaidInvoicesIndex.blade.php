@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Customer Unpaid Invoices</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
-@include('user.components.navbar')
-<div class="flex min-h-screen bg-gray-50">
-    @include('user.components.sidebar')
+<x-app-layout>
     <main class="flex-1 p-6">
         <div class="max-w-5xl mx-auto">
             <div class="bg-white shadow-sm rounded-lg border border-gray-200">
@@ -61,6 +42,4 @@
             </div>
         </div>
     </main>
-</div>
-</body>
-</html>
+</x-app-layout>

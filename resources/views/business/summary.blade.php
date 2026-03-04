@@ -1,169 +1,188 @@
 <x-app-layout>
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between mb-6">
+    <div class="py-10 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-10">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Business Summary</h1>
-                    <p class="text-gray-600 mt-1">{{ $business->business_name ?? '' }}</p>
+                    <h1 class="text-3xl font-semibold text-gray-800">Business Summary</h1>
+                    <p class="text-gray-500 text-base mt-1">{{ $business->business_name ?? '' }}</p>
                 </div>
-                <a href="{{ route('dashboard') }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">← Back</a>
+                <a href="{{ route('dashboard') }}"
+                   class="px-5 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-md transition shadow-sm">
+                    ← Back
+                </a>
             </div>
 
             <!-- Top summary cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-                <div class="rounded-xl border-2 border-cyan-200 bg-white p-6 shadow-lg hover:shadow-xl transition">
-                    <div class="text-sm text-cyan-700 font-bold uppercase tracking-wide">Total Assets</div>
-                    <div class="mt-3 text-4xl font-black text-gray-900">{{ $totals['assets'] ?? '-' }}</div>
-                </div>
-                <div class="rounded-xl border-2 border-red-200 bg-white p-6 shadow-lg hover:shadow-xl transition">
-                    <div class="text-sm text-red-700 font-bold uppercase tracking-wide">Total Liabilities</div>
-                    <div class="mt-3 text-4xl font-black text-gray-900">{{ $totals['liabilities'] ?? '-' }}</div>
-                </div>
-                <div class="rounded-xl border-2 border-indigo-200 bg-white p-6 shadow-lg hover:shadow-xl transition">
-                    <div class="text-sm text-indigo-700 font-bold uppercase tracking-wide">Equity</div>
-                    <div class="mt-3 text-4xl font-black text-gray-900">{{ $totals['equity'] ?? '-' }}</div>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                @php
+                    $summaryCards = [
+                        ['label' => 'Total Assets', 'value' => $totals['assets'] ?? '-'],
+                        ['label' => 'Total Liabilities', 'value' => $totals['liabilities'] ?? '-'],
+                        ['label' => 'Equity', 'value' => $totals['equity'] ?? '-'],
+                    ];
+                @endphp
+
+                @foreach ($summaryCards as $card)
+                    <div class="rounded-lg bg-white p-6 shadow-sm border border-gray-200 hover:shadow-md transition">
+                        <div class="text-sm text-gray-500 font-medium uppercase tracking-wide">
+                            {{ $card['label'] }}
+                        </div>
+                        <div class="mt-3 text-3xl font-bold text-gray-800">
+                            {{ $card['value'] }}
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-                <div class="rounded-xl border-2 border-yellow-200 bg-white p-6 shadow-lg hover:shadow-xl transition">
-                    <div class="text-sm text-yellow-800 font-bold uppercase tracking-wide">Income</div>
-                    <div class="mt-3 text-4xl font-black text-gray-900">{{ $totals['income'] ?? '-' }}</div>
-                </div>
-                <div class="rounded-xl border-2 border-blue-200 bg-white p-6 shadow-lg hover:shadow-xl transition">
-                    <div class="text-sm text-blue-700 font-bold uppercase tracking-wide">Expenses</div>
-                    <div class="mt-3 text-4xl font-black text-gray-900">{{ $totals['expenses'] ?? '-' }}</div>
-                </div>
-                <div class="rounded-xl border-2 border-teal-200 bg-white p-6 shadow-lg hover:shadow-xl transition">
-                    <div class="text-sm text-teal-700 font-bold uppercase tracking-wide">Net Profit (Loss)</div>
-                    <div class="mt-3 text-4xl font-black text-gray-900">{{ $totals['net'] ?? '-' }}</div>
-                </div>
+            <!-- Secondary summary -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                @php
+                    $additionalCards = [
+                        ['label' => 'Income', 'value' => $totals['income'] ?? '-'],
+                        ['label' => 'Expenses', 'value' => $totals['expenses'] ?? '-'],
+                        ['label' => 'Net Profit (Loss)', 'value' => $totals['net'] ?? '-'],
+                    ];
+                @endphp
+
+                @foreach ($additionalCards as $card)
+                    <div class="rounded-lg bg-white p-6 shadow-sm border border-gray-200 hover:shadow-md transition">
+                        <div class="text-sm text-gray-500 font-medium uppercase tracking-wide">
+                            {{ $card['label'] }}
+                        </div>
+                        <div class="mt-3 text-3xl font-bold text-gray-800">
+                            {{ $card['value'] }}
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
             <!-- Financial Statements -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                <!-- Balance Sheet Column -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+                <!-- Balance Sheet -->
                 <div>
-                    <div class="text-center mb-6">
-                        <h2 class="text-lg font-bold text-gray-700 uppercase tracking-wider">Balance Sheet</h2>
-                    </div>
+                    <h2 class="text-center text-xl font-semibold text-gray-700 mb-6">
+                        Balance Sheet
+                    </h2>
+
+                    @php
+                        $balanceOrder = ['Current Assets', 'Current Liabilities', 'Equity'];
+                        $orderedBalanceSections = collect($sections['balance_sheet'])
+                            ->sortBy(fn($s) => array_search($s['name'], $balanceOrder))
+                            ->values();
+                    @endphp
 
                     <div class="space-y-6">
-                        <div class="rounded-xl bg-white border-2 border-cyan-200 overflow-hidden shadow-lg">
-                            <div class="px-6 py-4 bg-gray-50 border-b-2 border-cyan-200">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-gray-900 text-base">Assets</span>
-                                    <span class="font-semibold text-cyan-700 text-lg">{{ $totals['assets'] ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <ul class="divide-y divide-gray-100 px-6 py-4 text-sm">
-                                @if(!empty($balanceSheet['Assets'] ?? []))
-                                    @foreach($balanceSheet['Assets'] as $line)
-                                        <li class="py-3 flex justify-between text-gray-700">
-                                            <span>{{ $line['label'] }}</span>
-                                            <span class="font-medium text-gray-900">{{ $line['amount'] }}</span>
-                                        </li>
-                                    @endforeach
-                                @else
-                                    <li class="py-6 text-center text-gray-400 italic">No data available</li>
-                                @endif
-                            </ul>
-                        </div>
+                        @foreach ($orderedBalanceSections as $group)
+                            @php
+                                // Copy original accounts
+                                $accounts = collect($group['accounts']);
 
-                        <div class="rounded-xl bg-white border-2 border-red-200 overflow-hidden shadow-lg">
-                            <div class="px-6 py-4 bg-gray-50 border-b-2 border-red-200">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-gray-900 text-base">Liabilities</span>
-                                    <span class="font-semibold text-red-700 text-lg">{{ $totals['liabilities'] ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <ul class="divide-y divide-gray-100 px-6 py-4 text-sm">
-                                @if(!empty($balanceSheet['Liabilities'] ?? []))
-                                    @foreach($balanceSheet['Liabilities'] as $line)
-                                        <li class="py-3 flex justify-between text-gray-700">
-                                            <span>{{ $line['label'] }}</span>
-                                            <span class="font-medium text-gray-900">{{ $line['amount'] }}</span>
-                                        </li>
-                                    @endforeach
-                                @else
-                                    <li class="py-6 text-center text-gray-400 italic">No data available</li>
-                                @endif
-                            </ul>
-                        </div>
+                                // Adjust Equity accounts
+                                if (strtolower($group['name']) === 'equity') {
+                                    $ownerCapital = $accounts->firstWhere('name', 'Owner’s Capital');
+                                    $drawings = $accounts->firstWhere('name', 'Drawings / Owner Withdrawals');
+                                    $retained = $accounts->firstWhere('name', 'Retained Earnings');
 
-                        <div class="rounded-xl bg-white border-2 border-indigo-200 overflow-hidden shadow-lg">
-                            <div class="px-6 py-4 bg-gray-50 border-b-2 border-indigo-200">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-gray-900 text-base">Equity</span>
-                                    <span class="font-semibold text-indigo-700 text-lg">{{ $totals['equity'] ?? '-' }}</span>
+                                    $netProfit = floatval(str_replace(',', '', $totals['net'] ?? 0));
+
+                                    if ($ownerCapital) {
+                                        $ownerCapital['balance'] = number_format(abs(floatval(str_replace(',', '', $ownerCapital['balance']))), 2);
+                                    }
+                                    if ($drawings) {
+                                        $drawings['balance'] = number_format(-1 * floatval(str_replace(',', '', $drawings['balance'])), 2);
+                                    }
+                                    if ($retained) {
+                                        $retained['balance'] = number_format($netProfit, 2);
+                                    }
+
+                                    // Rebuild accounts in desired order
+                                    $accounts = collect([$ownerCapital, $drawings, $retained])->filter();
+                                }
+                            @endphp
+
+                            <div class="rounded-lg bg-white border border-gray-200 shadow-sm overflow-hidden">
+                                <!-- Group Header -->
+                                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-800 font-medium">{{ $group['name'] }}</span>
+                                        <span class="text-gray-600 font-semibold">
+                                            {{ number_format($accounts->sum(fn($a) => floatval(str_replace(',', '', $a['balance']))), 2) }}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <ul class="divide-y divide-gray-100 px-6 py-4 text-sm">
-                                @if(!empty($balanceSheet['Equity'] ?? []))
-                                    @foreach($balanceSheet['Equity'] as $line)
+
+                                <!-- Accounts List -->
+                                <ul class="divide-y divide-gray-100 px-6 py-4">
+                                    @forelse ($accounts as $acct)
                                         <li class="py-3 flex justify-between text-gray-700">
-                                            <span>{{ $line['label'] }}</span>
-                                            <span class="font-medium text-gray-900">{{ $line['amount'] }}</span>
+                                            <span>{{ $acct['name'] }}</span>
+                                            <span class="font-medium text-gray-900">{{ $acct['balance'] }}</span>
                                         </li>
-                                    @endforeach
-                                @else
-                                    <li class="py-6 text-center text-gray-400 italic">No data available</li>
-                                @endif
-                            </ul>
-                        </div>
+                                    @empty
+                                        <li class="py-6 text-center text-gray-400 italic">No data available</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
 
-                <!-- Profit & Loss Column -->
+                <!-- Profit & Loss -->
                 <div>
-                    <div class="text-center mb-6">
-                        <h2 class="text-lg font-bold text-gray-700 uppercase tracking-wider">Profit and Loss Statement</h2>
-                    </div>
+                    <h2 class="text-center text-xl font-semibold text-gray-700 mb-6">
+                        Profit and Loss Statement
+                    </h2>
+
+                    @php
+                        // Define the order: Income first, Operating Expenses second
+                        $plOrder = ['Income', 'Operating Expenses'];
+                        $orderedPLSections = collect($sections['profit_and_loss'])
+                            ->sortBy(fn($s) => array_search($s['name'], $plOrder) !== false ? array_search($s['name'], $plOrder) : 999)
+                            ->values();
+                    @endphp
 
                     <div class="space-y-6">
-                        <div class="rounded-xl bg-white border-2 border-yellow-200 overflow-hidden shadow-lg">
-                            <div class="px-6 py-4 bg-gray-50 border-b-2 border-yellow-200">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-gray-900 text-base">Income</span>
-                                    <span class="font-semibold text-yellow-800 text-lg">{{ $totals['income'] ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <ul class="divide-y divide-gray-100 px-6 py-4 text-sm">
-                                @if(!empty($profitLoss['income'] ?? []))
-                                    @foreach($profitLoss['income'] as $line)
-                                        <li class="py-3 flex justify-between text-gray-700">
-                                            <span>{{ $line['label'] }}</span>
-                                            <span class="font-medium text-gray-900">{{ $line['amount'] }}</span>
-                                        </li>
-                                    @endforeach
-                                @else
-                                    <li class="py-6 text-center text-gray-400 italic">No data available</li>
-                                @endif
-                            </ul>
-                        </div>
+                        @foreach ($orderedPLSections as $group)
+                            <div class="rounded-lg bg-white border border-gray-200 shadow-sm overflow-hidden">
 
-                        <div class="rounded-xl bg-white border-2 border-blue-200 overflow-hidden shadow-lg">
-                            <div class="px-6 py-4 bg-gray-50 border-b-2 border-blue-200">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-gray-900 text-base">Expenses</span>
-                                    <span class="font-semibold text-blue-700 text-lg">{{ $totals['expenses'] ?? '-' }}</span>
+                                <!-- Group Header -->
+                                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-800 font-medium">{{ $group['name'] }}</span>
+                                        <span class="text-gray-600 font-semibold">
+                                            @php
+                                                // Compute total dynamically
+                                                $displayTotal = $group['name'] === 'Income'
+                                                    ? (float) str_replace(',', '', $totals['income'] ?? 0)
+                                                    : collect($group['accounts'])->sum(fn($acct) =>
+                                                        (float) str_replace(',', '', $acct['balance'] ?? 0)
+                                                    );
+                                            @endphp
+
+                                            {{ number_format($displayTotal, 2) }}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <ul class="divide-y divide-gray-100 px-6 py-4 text-sm">
-                                @if(!empty($profitLoss['expenses'] ?? []))
-                                    @foreach($profitLoss['expenses'] as $line)
+
+                                <!-- Accounts List -->
+                                <ul class="divide-y divide-gray-100 px-6 py-4">
+                                    @forelse ($group['accounts'] as $acct)
                                         <li class="py-3 flex justify-between text-gray-700">
-                                            <span>{{ $line['label'] }}</span>
-                                            <span class="font-medium text-gray-900">{{ $line['amount'] }}</span>
+                                            <span>{{ $acct['name'] }}</span>
+                                            <span class="font-medium text-gray-900">{{ $acct['balance'] }}</span>
                                         </li>
-                                    @endforeach
-                                @else
-                                    <li class="py-6 text-center text-gray-400 italic">No data available</li>
-                                @endif
-                            </ul>
-                        </div>
+                                    @empty
+                                        <li class="py-6 text-center text-gray-400 italic">No data available</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

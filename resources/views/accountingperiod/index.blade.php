@@ -1,20 +1,26 @@
 <x-app-layout>
-	<div class="py-6">
+	<div class="py-8">
 		<div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+			<!-- Page Header -->
 			<div class="flex items-center justify-between mb-6">
 				<div>
-					<h1 class="text-2xl font-bold text-gray-900">Accounting Periods</h1>
-					<p class="text-sm text-gray-600 mt-1">Manage your fiscal periods and year-end closures</p>
+					<h1 class="text-3xl font-bold text-gray-900">Accounting Periods</h1>
+					<p class="text-gray-600 mt-1 text-sm">Manage fiscal periods, opening balances, and year-end closures</p>
 				</div>
 			</div>
 
+			<!-- Success Message -->
 			@if(session('success'))
-				<div class="mb-4 p-3 bg-green-100 border border-green-300 rounded text-green-800">{{ session('success') }}</div>
+				<div class="mb-4 bg-green-50 text-green-700 border border-green-300 p-3 rounded-md shadow-sm">
+					{{ session('success') }}
+				</div>
 			@endif
 
+			<!-- Validation Errors -->
 			@if($errors->any())
-				<div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded">
-					<ul class="list-disc pl-5">
+				<div class="mb-4 bg-red-50 text-red-700 border border-red-300 p-4 rounded-md shadow-sm">
+					<ul class="list-disc ml-6 text-sm">
 						@foreach($errors->all() as $err)
 							<li>{{ $err }}</li>
 						@endforeach
@@ -22,71 +28,111 @@
 				</div>
 			@endif
 
-			{{-- Create form --}}
-			<div class="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
-				<h2 class="text-lg font-semibold text-gray-900 mb-4">Create New Period</h2>
-				<form method="POST" action="{{ route('accountingperiod.store') ?? '#' }}">
+			<!-- Create New Period Card -->
+			<div class="bg-white rounded-xl shadow border-1 border-slate-200 p-6 mb-8">
+				<h2 class="text-xl font-semibold text-gray-900 mb-4">Create New Period</h2>
+
+				<form method="POST" action="{{ route('accountingperiod.store') }}">
 					@csrf
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+						<!-- Period Name -->
 						<div>
-							<label class="block text-sm font-medium text-gray-700">Period name</label>
-							<input type="text" name="period_name" value="{{ old('period_name') }}" class="mt-1 block w-full bg-white border-gray-300 text-gray-900 rounded px-3 py-2">
+							<label class="block text-sm font-medium text-gray-700">Period Name</label>
+							<input type="text" name="period_name" value="{{ old('period_name') }}"
+								class="mt-1 block w-full px-3 py-2 border-1 border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
 						</div>
+
+						<!-- Start Date -->
 						<div>
-							<label class="block text-sm font-medium text-gray-700">Start date</label>
-							<input type="date" name="start_date" value="{{ old('start_date') }}" class="mt-1 block w-full bg-white border-gray-300 text-gray-900 rounded px-3 py-2">
+							<label class="block text-sm font-medium text-gray-700">Start Date</label>
+							<input type="date" name="start_date" value="{{ old('start_date') }}"
+								class="mt-1 block w-full px-3 py-2 border-1 border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
 						</div>
+
+						<!-- End Date -->
 						<div>
-							<label class="block text-sm font-medium text-gray-700">End date</label>
-							<input type="date" name="end_date" value="{{ old('end_date') }}" class="mt-1 block w-full bg-white border-gray-300 text-gray-900 rounded px-3 py-2">
+							<label class="block text-sm font-medium text-gray-700">End Date</label>
+							<input type="date" name="end_date" value="{{ old('end_date') }}"
+								class="mt-1 block w-full px-3 py-2 border-1 border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
 						</div>
 					</div>
-					<div class="mt-4 flex gap-3">
-						<button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Create Period</button>
-						<button type="button" onclick="this.form.reset()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded">Reset</button>
+
+					<!-- Form Buttons -->
+					<div class="mt-6 flex gap-3">
+						<button type="submit"
+							class="px-5 py-2 border-1 border-blue-300 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">
+							Create Period
+						</button>
+
+						<button type="button" onclick="this.form.reset()"
+							class="px-5 py-2 border-1 border-slate-300 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow">
+							Reset
+						</button>
 					</div>
+
 				</form>
 			</div>
 
-			{{-- Periods table --}}
-			<div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+			<!-- Periods Listing -->
+			<div class="bg-white rounded-xl shadow border-1 border-slate-300 overflow-hidden">
+
+				<table class="min-w-full divide-y divide-gray-200 text-sm">
+					<thead class="bg-gray-100 sticky top-0">
 						<tr>
-							<th class="px-4 py-3 text-left text-gray-900 font-semibold">Name</th>
-							<th class="px-4 py-3 text-left text-gray-900 font-semibold">Start Date</th>
-							<th class="px-4 py-3 text-left text-gray-900 font-semibold">End Date</th>
-							<th class="px-4 py-3 text-left text-gray-900 font-semibold">Closed</th>
-							<th class="px-4 py-3 text-right text-gray-900 font-semibold">Actions</th>
+							<th class="px-4 py-3 text-left font-semibold text-gray-800">Name</th>
+							<th class="px-4 py-3 text-left font-semibold text-gray-800">Start Date</th>
+							<th class="px-4 py-3 text-left font-semibold text-gray-800">End Date</th>
+							<th class="px-4 py-3 text-left font-semibold text-gray-800">Status</th>
+							<th class="px-4 py-3 text-left font-semibold text-gray-800">Actions</th>
 						</tr>
 					</thead>
-					<tbody class="bg-white divide-y divide-gray-200">
+
+					<tbody class="divide-y divide-gray-200 bg-white">
 						@if(isset($periods) && $periods->count())
 							@foreach($periods as $p)
-								<tr class="hover:bg-gray-50">
+								<tr class="hover:bg-gray-50 transition">
 									<td class="px-4 py-3 text-gray-900">{{ $p->period_name }}</td>
-									<td class="px-4 py-3 text-gray-900">{{ optional($p->start_date)->toDateString() }}</td>
-									<td class="px-4 py-3 text-gray-900">{{ optional($p->end_date)->toDateString() }}</td>
+									<td class="px-4 py-3 text-gray-700">{{ optional($p->start_date)->format('Y-m-d') }}</td>
+									<td class="px-4 py-3 text-gray-700">{{ optional($p->end_date)->format('Y-m-d') }}</td>
+
+									<!-- Closed Status Badge -->
 									<td class="px-4 py-3">
 										@if($p->is_closed)
-											<span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded border border-red-300">Closed</span>
+											<span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-lg border border-red-300">
+												Closed
+											</span>
 										@else
-											<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded border border-green-300">Open</span>
+											<span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-lg border border-green-300">
+												Open
+											</span>
 										@endif
 									</td>
-									<td class="px-4 py-3 text-right">
-										<a href="{{ route('accountingperiod.edit', $p->id) ?? '#' }}" class="px-3 py-1 bg-yellow-100 hover:bg-yellow-200 rounded text-yellow-800 border border-yellow-300">Edit</a>
-									</td>
+
+										<td class="px-4 py-3 text-right">
+											<form method="POST" action="{{ route('accountingperiod.destroy', $p->id) }}" onsubmit="return confirm('Are you sure you want to delete this accounting period?');">
+												@csrf
+												@method('DELETE')
+												<button type="submit" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg">
+													Delete
+												</button>
+											</form>
+										</td>
 								</tr>
 							@endforeach
 						@else
 							<tr>
-								<td class="px-4 py-3 text-center text-gray-600" colspan="5">No accounting periods found.</td>
+								<td colspan="5" class="px-4 py-6 text-center text-gray-500">
+									No accounting periods found.
+								</td>
 							</tr>
 						@endif
 					</tbody>
 				</table>
+		
 			</div>
+
 		</div>
 	</div>
 </x-app-layout>

@@ -1,30 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $report->title }}</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
-@include('user.components.navbar')
-<div class="flex min-h-screen bg-gray-50">
-    @include('user.components.sidebar')
-    <main class="flex-1 p-6">
-        <div class="max-w-6xl mx-auto space-y-6">
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-semibold">{{ $report->title }}</h1>
+            <div class="text-sm text-gray-500">{{ $from->format('M j, Y') }} - {{ $to->format('M j, Y') }}</div>
+        </div>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-6xl mx-auto px-4 space-y-6">
             <div class="bg-white border rounded-lg p-6">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold">Customer Statement (Transactions)</h2>
-                    <div class="text-sm text-gray-500">{{ $from->format('M j, Y') }} - {{ $to->format('M j, Y') }}</div>
-                </div>
                 <div class="mt-2 text-sm text-gray-700">
                     <span class="font-medium">Customer:</span>
                     {{ $customer?->name ?? 'All customers' }}
@@ -73,7 +57,5 @@
                 </table>
             </div>
         </div>
-    </main>
-</div>
-</body>
-</html>
+    </div>
+</x-app-layout>

@@ -106,6 +106,14 @@ class ProfitAndLossReportController extends Controller
             return $showSign && $v > 0 ? '+' . $formatted : $formatted;
         };
 
+        // dd([
+        //     'revenue_groups_detected' => array_keys($revenueGroups),
+        //     'revenue_groups_full' => $revenueGroups,
+        //     'service_totalRevenue' => $revenueTotal,
+        //     'service_totalExpense' => $expenseTotal,
+        //     'netProfit' => $netProfit,
+        // ]);
+
         return view('reports.financialStatements.profitandloss.plsShow', compact(
             'report',
             'grouped',

@@ -43,11 +43,29 @@ class CustomerInvoice extends Model
 
     public function appliedAmount(): float
     {
-        return (float) $this->invoicePayments()->sum('amount');
+        $payments = (float) $this->invoicePayments()->sum('amount');
+        $creditAlloc = 0.0;
+        if (method_exists($this, 'creditAllocations')) {
+            $creditAlloc = (float) $this->creditAllocations()->sum('amount');
+        }
+
+        // Credits reduce outstanding (so they increase applied amount)
+        return (float) ($payments + $creditAlloc);
     }
 
-    public function balanceDue(): float
+    public function creditAllocations()
+    {
+        return $this->hasMany(CustomerCreditNoteInvoice::class, 'customer_invoice_id');
+    }
+
+    public function outstandingAmount(): float
     {
         return (float) $this->total_amount - $this->appliedAmount();
+    }
+
+    // Backwards-compatible alias used in views/controllers
+    public function balanceDue(): float
+    {
+        return $this->outstandingAmount();
     }
 }

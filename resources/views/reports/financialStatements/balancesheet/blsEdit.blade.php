@@ -42,15 +42,21 @@
                         <div>
                             <div id="columnsContainer" class="space-y-3">
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end max-w-xl">
-                                <div class="sm:col-span-5">
-                                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
-                                    <div class="relative mt-1">
-                                        <input id="date" type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" class="w-full pr-10 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500" />
-                                        <i class="far fa-calendar-alt absolute right-3 top-3.5 text-gray-400"></i>
+                                <div class="sm:col-span-5 grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="from" class="block text-sm font-medium text-gray-700">From</label>
+                                        <div class="relative mt-1">
+                                            <input id="from" type="date" name="from" value="{{ old('from', $report->from?->format('Y-m-d') ?? date('Y-m-d')) }}" class="w-full pr-10 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500" />
+                                            <i class="far fa-calendar-alt absolute right-3 top-3.5 text-gray-400"></i>
+                                        </div>
                                     </div>
-                                    @error('date')
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
+                                    <div>
+                                        <label for="to" class="block text-sm font-medium text-gray-700">To</label>
+                                        <div class="relative mt-1">
+                                            <input id="to" type="date" name="to" value="{{ old('to', $report->to?->format('Y-m-d') ?? date('Y-m-d')) }}" class="w-full pr-10 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500" />
+                                            <i class="far fa-calendar-alt absolute right-3 top-3.5 text-gray-400"></i>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="sm:col-span-6">
                                     <label for="column_name" class="block text-sm font-medium text-gray-700">Column label</label>
@@ -86,14 +92,13 @@
                             </select>
                         </div>
 
-                        <!-- Layout -->
+                        <!-- Accounting equation -->
                         <div class="max-w-sm">
-                            <label for="layout" class="block text-sm font-medium text-gray-700">Layout</label>
-                            @php $layoutVal = old('layout', 'assets-minus-liabilities-equals-equity'); @endphp
-                            <select id="layout" name="layout" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500">
-                                <option value="assets-minus-liabilities-equals-equity" {{ $layoutVal === 'assets-minus-liabilities-equals-equity' ? 'selected' : '' }}>Assets - Liabilities = Equity</option>
-                                <option value="assets-equals-liabilities-plus-equity" {{ $layoutVal === 'assets-equals-liabilities-plus-equity' ? 'selected' : '' }}>Assets = Liabilities + Equity</option>
-                                <option value="assets-equals-equity-plus-liabilities" {{ $layoutVal === 'assets-equals-equity-plus-liabilities' ? 'selected' : '' }}>Assets = Equity + Liabilities</option>
+                            <label for="equation" class="block text-sm font-medium text-gray-700">Accounting equation</label>
+                            @php $eqVal = old('equation', $report->equation ?? 'standard'); @endphp
+                            <select id="equation" name="equation" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500">
+                                <option value="standard" {{ $eqVal === 'standard' ? 'selected' : '' }}>ASSET = LIABILITIES + EQUITY</option>
+                                <option value="extended" {{ $eqVal === 'extended' ? 'selected' : '' }}>ASSET = LIABILITIES + EQUITY + REVENUE - EXPENSES</option>
                             </select>
                         </div>
 
@@ -116,7 +121,7 @@
     (function(){
         const columnsContainer = document.getElementById('columnsContainer');
         const addComparativeBtn = document.getElementById('addComparativeBtn');
-        const baseDate = document.getElementById('date');
+        const baseDate = document.getElementById('to');
         const titleInput = document.getElementById('title');
         const submitBtn = document.getElementById('submitBtn');
         const pageHeading = document.getElementById('pageHeading');

@@ -9,20 +9,26 @@
 
     <!-- Tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!-- Alpine -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('sidebar', { open: true });
+        });
+    </script>
+
+     
 </head>
 
-<body class=" bg-gray-100 text-white min-h-screen font-sans">
+<body class=" bg-slate-100 min-h-screen font-sans">
 
     @include('components.sidebar')
     @include('layouts.navigation')
 
     <!-- Main content -->
-    <main class="pt-20 md:ml-64 px-8 pb-10">
+    <main x-data class="pt-22 px-6 pb-10 transition-all duration-300" :class="$store.sidebar.open ? 'md:ml-64' : 'md:ml-20'">
         @isset($slot)
             {{ $slot }}
         @else
@@ -31,4 +37,6 @@
     </main>
 
 </body>
+
+
 </html>

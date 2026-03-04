@@ -18,18 +18,15 @@ class APPostingRule implements PostingRuleInterface
         $hasPayable = false;
 
         foreach ($lines as $i => $ln) {
-            // require supplier_id on payable (credit) lines
+            // require at least one payable (credit) line
             $credit = (float) Arr::get($ln, 'credit_amount', 0);
-            if ($credit > 0 && ! Arr::get($ln, 'supplier_id')) {
-                throw ValidationException::withMessages(["lines.$i.supplier_id" => 'Supplier is required for payable (credit) lines in AP postings.']);
-            }
-            if ($credit > 0 && Arr::get($ln, 'supplier_id')) {
+            if ($credit > 0) {
                 $hasPayable = true;
             }
         }
 
         if (! $hasPayable) {
-            throw ValidationException::withMessages(['lines' => 'AP postings require at least one payable line with supplier linking.']);
+            throw ValidationException::withMessages(['lines' => 'AP postings require at least one payable line.']);
         }
 
         return $payload;

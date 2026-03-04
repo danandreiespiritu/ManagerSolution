@@ -116,7 +116,7 @@
                     <input
                         name="payment_date"
                         id="payment_date"
-                        type="text"
+                        type="date"
                         placeholder="Select date"
                         class="cursor-pointer mt-1 p-2 w-full border border-gray-300 rounded bg-white text-gray-900 shadow-sm"
                     />
@@ -125,7 +125,7 @@
 
                 <div>
                     <label class="text-xs text-gray-700">Amount</label>
-                    <input name="amount"
+                    <input name="amount" onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                            class="mt-1 p-2 w-full border border-gray-300 rounded bg-white text-gray-900" />
                 </div>
 

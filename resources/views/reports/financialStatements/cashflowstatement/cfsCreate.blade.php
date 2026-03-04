@@ -105,21 +105,10 @@
                                                    value="{{ old('column_label') }}"
                                                    class="w-full border-gray-300 rounded-md shadow-sm">
                                         </div>
-
                                     </div>
                                 </div>
-
                             </div>
-
-                            <div class="mt-4">
-                                <button id="addComparativeBtn" type="button"
-                                        class="px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-50">
-                                    Add comparative column
-                                </button>
-                            </div>
-
                         </div>
-
                         <!-- Footer and Options -->
                         <div class="form-section pl-6 pr-4 py-4 rounded-lg">
 

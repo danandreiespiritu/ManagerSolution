@@ -20,11 +20,15 @@ class CashFlowReport extends Model
         'to',
         'column_label',
         'comparatives',
+        'cash_transactions',
+        'cash_flow_accounts',
     ];
 
     protected $casts = [
         'from' => 'date',
         'to' => 'date',
         'comparatives' => 'array',
+        'cash_transactions' => 'array',
+        'cash_flow_accounts' => 'array',
     ];
 }

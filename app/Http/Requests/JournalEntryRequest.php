@@ -37,10 +37,17 @@ class JournalEntryRequest extends FormRequest
                 Rule::exists('chart_of_accounts', 'id')->where(fn ($q) => $q->where('business_id', $businessId ?? 0)),
             ],
             'lines.*.description' => ['nullable','string','max:2000'],
+            'lines.*.cash_category' => ['nullable', Rule::in([
+                'Operating activities',
+                'Investing activities',
+                'Financing activities',
+                'Operational Activities',
+                'Investing Activities',
+                'Financing Activities',
+            ])],
             'lines.*.debit_amount' => ['nullable','numeric','min:0'],
             'lines.*.credit_amount' => ['nullable','numeric','min:0'],
-            'lines.*.customer_id' => ['nullable','integer','exists:customers,id'],
-            'lines.*.supplier_id' => ['nullable','integer','exists:suppliers,id'],
+            'auto_adjust' => ['nullable','boolean'],
         ];
     }
 
@@ -52,6 +59,7 @@ class JournalEntryRequest extends FormRequest
             $totalCredit = '0.00';
             $hasDebitLine = false;
             $hasCreditLine = false;
+            $accountIds = [];
 
             $toNum = static function ($value): string {
                 if ($value === null) return '0.00';
@@ -72,11 +80,15 @@ class JournalEntryRequest extends FormRequest
             foreach ($lines as $ln) {
                 $debit = $toNum(Arr::get($ln, 'debit_amount', 0));
                 $credit = $toNum(Arr::get($ln, 'credit_amount', 0));
+                $accountId = Arr::get($ln, 'account_id');
 
-                // Each line must have exactly one positive amount (debit xor credit)
-                if (bccomp($debit, '0', 2) === 1 && bccomp($credit, '0', 2) === 1) {
-                    $v->errors()->add('lines', 'A line cannot have both debit and credit amounts.');
+                // Track account IDs for duplicate check
+                if ($accountId) {
+                    $accountIds[] = $accountId;
                 }
+
+                // Each line must have at least one positive amount (debit or credit or both)
+                // Auto-adjust will handle any imbalances
                 if (bccomp($debit, '0', 2) !== 1 && bccomp($credit, '0', 2) !== 1) {
                     $v->errors()->add('lines', 'Each line must have a debit or credit amount greater than zero.');
                 }
@@ -86,6 +98,12 @@ class JournalEntryRequest extends FormRequest
 
                 $totalDebit = bcadd($totalDebit, $debit, 2);
                 $totalCredit = bcadd($totalCredit, $credit, 2);
+            }
+
+            // Validate no duplicate accounts
+            $uniqueAccountIds = array_unique(array_filter($accountIds));
+            if (count($accountIds) !== count($uniqueAccountIds)) {
+                $v->errors()->add('lines', 'Duplicate accounts are not allowed. Each account can only appear once in a journal entry.');
             }
 
             // Check each account's metadata (active + same business)
@@ -112,7 +130,7 @@ class JournalEntryRequest extends FormRequest
                     return str_contains($name, 'payabl') || str_contains($group, 'payabl') || str_contains($code, 'payabl') || str_contains($name, 'accounts payable');
                 };
 
-                // Enforce per-line sub-ledger linking: AR -> customer_id, AP -> supplier_id
+                // Enforce per-line control account rules
                 foreach ($lines as $i => $ln) {
                     $acctId = Arr::get($ln, 'account_id');
                     if (! $acctId) continue;
@@ -133,22 +151,15 @@ class JournalEntryRequest extends FormRequest
                             );
                         }
                     }
-
-                    if ($isReceivable($acct)) {
-                        if (! Arr::get($ln, 'customer_id')) {
-                            $v->errors()->add('lines.' . $i . '.customer_id', "Customer is required for receivable account '{$acct->account_name}'.");
-                        }
-                    }
-                    if ($isPayable($acct)) {
-                        if (! Arr::get($ln, 'supplier_id')) {
-                            $v->errors()->add('lines.' . $i . '.supplier_id', "Supplier is required for payable account '{$acct->account_name}'.");
-                        }
-                    }
                 }
             }
 
-            if (bccomp($totalDebit, $totalCredit, 2) !== 0) {
-                $v->errors()->add('lines', 'Total debits must equal total credits.');
+            // Check for imbalance and automatically enable auto-adjust if needed
+            $imbalance = bcsub((string)$totalDebit, (string)$totalCredit, 2);
+            
+            if (bccomp($imbalance, '0', 2) !== 0) {
+                // Automatically enable auto-adjust for imbalanced entries
+                $this->merge(['auto_adjust' => true]);
             }
 
             if (! $hasDebitLine || ! $hasCreditLine) {
@@ -168,6 +179,20 @@ class JournalEntryRequest extends FormRequest
                     }
                     if ($businessId && $period->business_id != $businessId) {
                         $v->errors()->add('accounting_period_id', 'Selected accounting period does not belong to the selected business.');
+                    }
+                    // Ensure provided entry date falls within the selected period (inclusive)
+                    $entryDate = $this->input('entry_date');
+                    if ($entryDate) {
+                        try {
+                            $ed = \Carbon\Carbon::parse($entryDate)->startOfDay();
+                            $start = $period->start_date->startOfDay();
+                            $end = $period->end_date->endOfDay();
+                            if (! $ed->betweenIncluded($start, $end)) {
+                                $v->errors()->add('entry_date', 'Entry date must be within the selected accounting period.');
+                            }
+                        } catch (\Exception $e) {
+                            $v->errors()->add('entry_date', 'Invalid entry date.');
+                        }
                     }
                 }
             } else {

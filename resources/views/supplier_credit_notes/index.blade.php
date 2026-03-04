@@ -125,7 +125,7 @@
                 <div>
                     <label class="text-xs text-gray-700">Date</label>
                     <input
-                        type="text"
+                        type="date"
                         id="credit_date"
                         name="credit_date"
                         placeholder="Select date"

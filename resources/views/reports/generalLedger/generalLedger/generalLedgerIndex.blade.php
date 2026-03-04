@@ -1,31 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>General Ledger Summary Reports</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
-@include('user.components.navbar')
-<div class="flex min-h-screen bg-gray-50">
-    @include('user.components.sidebar')
-    <main class="flex-1 p-6">
-        <div class="max-w-5xl mx-auto">
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            General Ledger Summary Reports
+        </h2>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+
             <div class="flex items-center justify-between mb-4">
-                <h1 class="text-xl font-semibold">General Ledger Summary Reports</h1>
-                <a href="{{ route('reports.general-ledger.summary') }}" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Create</a>
+                <h1 class="text-lg font-semibold">General Ledger Summary Reports</h1>
+                <a href="{{ route('reports.general-ledger.summary') }}"
+                   class="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Create
+                </a>
             </div>
-            <div class="bg-white rounded border">
+
+            <div class="bg-white overflow-hidden shadow-md sm:rounded-lg border">
                 <table class="min-w-full text-sm">
-                    <thead class="bg-gray-100">
+                    <thead class="bg-gray-100 border-b">
                         <tr>
                             <th class="px-4 py-2 text-left">Description</th>
                             <th class="px-4 py-2 text-left">From</th>
@@ -35,20 +28,28 @@
                     </thead>
                     <tbody>
                         @forelse($reports as $r)
-                            <tr class="border-t">
+                            <tr class="border-t hover:bg-gray-50">
                                 <td class="px-4 py-2">{{ $r->description }}</td>
                                 <td class="px-4 py-2">{{ optional($r->from_date)->toDateString() }}</td>
                                 <td class="px-4 py-2">{{ optional($r->to_date)->toDateString() }}</td>
-                                <td class="px-4 py-2 text-right"><a class="text-blue-600" href="{{ route('reports.general-ledger.summary.show', $r) }}">View</a></td>
+                                <td class="px-4 py-2 text-right">
+                                    <a class="text-blue-600 hover:underline"
+                                       href="{{ route('reports.general-ledger.summary.show', $r) }}">
+                                        View
+                                    </a>
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">No reports yet.</td></tr>
+                            <tr>
+                                <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+                                    No reports yet.
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+
         </div>
-    </main>
-</div>
-</body>
-</html>
+    </div>
+</x-app-layout>

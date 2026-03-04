@@ -41,22 +41,34 @@
                 </div>
 
 
-                <!-- DATE & COLUMN NAME -->
+                <!-- DATE RANGE & COLUMN NAME -->
                 <div class="space-y-3">
                     <label class="text-sm font-semibold text-gray-900">Main Column</label>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                        <!-- DATE -->
-                        <div class="space-y-1">
-                            <label class="text-xs text-gray-700">Date</label>
-                            <input type="text"
-                                   id="date"
-                                   name="date"
-                                   placeholder="Select date"
-                                   value="{{ old('date', date('Y-m-d')) }}"
-                                   class="cursor-pointer w-full px-3 py-2 border border-gray-300 bg-white rounded-lg shadow-sm text-gray-900"
-                                   autocomplete="off" />
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-xs text-gray-700">From</label>
+                                <input type="text"
+                                       id="from"
+                                       name="from"
+                                       placeholder="Start date"
+                                       value="{{ old('from', date('Y-m-d')) }}"
+                                       class="cursor-pointer w-full px-3 py-2 border border-gray-300 bg-white rounded-lg shadow-sm text-gray-900"
+                                       autocomplete="off" />
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-xs text-gray-700">To</label>
+                                <input type="text"
+                                       id="to"
+                                       name="to"
+                                       placeholder="End date"
+                                       value="{{ old('to', date('Y-m-d')) }}"
+                                       class="cursor-pointer w-full px-3 py-2 border border-gray-300 bg-white rounded-lg shadow-sm text-gray-900"
+                                       autocomplete="off" />
+                            </div>
                         </div>
 
                         <!-- Column name -->
@@ -97,14 +109,13 @@
                 </div>
 
 
-                <!-- LAYOUT -->
+                <!-- ACCOUNTING EQUATION -->
                 <div class="space-y-1 max-w-sm">
-                    <label class="text-sm font-semibold text-gray-900">Layout</label>
-                    <select name="layout"
+                    <label class="text-sm font-semibold text-gray-900">Accounting equation</label>
+                    <select name="equation"
                             class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="assets-minus-liabilities-equals-equity">Assets - Liabilities = Equity</option>
-                        <option value="assets-equals-liabilities-plus-equity">Assets = Liabilities + Equity</option>
-                        <option value="assets-equals-equity-plus-liabilities">Assets = Equity + Liabilities</option>
+                        <option value="standard" {{ old('equation') === 'standard' ? 'selected' : '' }}>ASSET = LIABILITIES + EQUITY</option>
+                        <option value="extended" {{ old('equation') === 'extended' ? 'selected' : '' }}>ASSET = LIABILITIES + EQUITY + REVENUE - EXPENSES</option>
                     </select>
                 </div>
 
@@ -134,14 +145,21 @@
 
 <!-- JS -->
 <script>
-flatpickr("#date", {
+flatpickr("#from", {
     dateFormat: "Y-m-d",
     altInput: true,
     altFormat: "F j, Y",
     allowInput: true,
-    defaultDate: "{{ old('date', date('Y-m-d')) }}"
+    defaultDate: "{{ old('from', date('Y-m-d')) }}"
 });
 
+flatpickr("#to", {
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "F j, Y",
+    allowInput: true,
+    defaultDate: "{{ old('to', date('Y-m-d')) }}"
+});
 
 (function () {
 

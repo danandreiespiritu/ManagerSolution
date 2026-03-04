@@ -17,7 +17,10 @@ class BalanceSheetReport extends Model
         'business_id',
         'title',
         'date',
+        'from',
+        'to',
         'accounting_method',
+        'equation',
         'layout',
         'description',
         'columns',
@@ -26,6 +29,8 @@ class BalanceSheetReport extends Model
 
     protected $casts = [
         'date' => 'date',
+        'from' => 'date',
+        'to' => 'date',
     ];
 
     public function getColumnsAttribute($value): Collection

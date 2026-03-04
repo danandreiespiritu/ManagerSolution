@@ -65,6 +65,21 @@ class ChangesInEquityReportController extends Controller
         $from = $report->from?->format('Y-m-d') ?? null;
         $to = $report->to?->format('Y-m-d') ?? null;
 
+        // Get totals from Profit & Loss service
+        $plBuilt = app(\App\Services\ProfitAndLossReportService::class)->build(
+            (int) $businessId,
+            $from,
+            $to,
+            (string) ($report->accounting_method ?? 'accrual'),
+            (string) ($report->rounding ?? 'none')
+        );
+
+        $revenueTotal = (float) ($plBuilt['totalRevenue'] ?? 0.0);
+        $expenseTotal = (float) ($plBuilt['totalExpense'] ?? 0.0);
+
+        // Net Income = Revenue - Expenses
+        $netIncome = $revenueTotal - $expenseTotal;
+
         // beginning equity: as of day before from
         $before = null;
         try {
@@ -83,10 +98,6 @@ class ChangesInEquityReportController extends Controller
         $beginningEquity = (float) ($bsBefore['total_equity'] ?? 0.0);
         $endingEquity = (float) ($bsEnd['total_equity'] ?? 0.0);
 
-        // profit or loss for the period
-        $pl = $this->fs->getProfitAndLoss((int)$businessId, $from, $to);
-        $netIncome = (float) ($pl['net'] ?? 0.0);
-
         // attempt to detect owner investments and withdrawals by account name heuristics
         $periodBalances = $this->ledger->getAccountBalances((int)$businessId, $from, $to);
 
@@ -95,6 +106,8 @@ class ChangesInEquityReportController extends Controller
 
         $investments = 0.0;
         $withdrawals = 0.0;
+
+        
 
         foreach ($periodBalances as $b) {
             $name = strtolower((string)($b->account_name ?? ''));

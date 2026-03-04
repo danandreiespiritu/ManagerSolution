@@ -1,403 +1,285 @@
 <x-app-layout>
-<main class="p-4 md:p-5 lg:p-6">
+<main class="p-4 md:p-6 lg:p-8 bg-gray-50">
 
-    <!-- Modern Minimal Breadcrumbs -->
-    <nav aria-label="Breadcrumb" class="mb-6">
+    <!-- Breadcrumb -->
+    <nav class="mb-6" aria-label="Breadcrumb">
         <ol class="flex items-center text-sm text-gray-500 gap-2">
             <li>
-                <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-blue-600 transition">
-                    Dashboard
-                </a>
+                <a class="hover:text-blue-600" href="{{ route('dashboard') }}">Dashboard</a>
             </li>
-            <li class="text-gray-400">/</li>
+            <li>/</li>
             <li>
-                <a href="{{ route('reports.financialStatements.profit-and-loss.index') }}" class="text-gray-700 hover:text-blue-600 transition">
-                    P&L Reports
-                </a>
+                <a class="hover:text-blue-600" href="{{ route('reports.financialStatements.profit-and-loss.index') }}">P&L Reports</a>
             </li>
-            <li class="text-gray-400">/</li>
-            <li class="text-gray-900 font-semibold">Create New</li>
+            <li>/</li>
+            <li class="text-gray-700 font-medium">Create New</li>
         </ol>
     </nav>
 
-    <!-- Header Section -->
-    <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Create Profit and Loss Report</h1>
-            <p class="text-gray-600 mt-1">Set up a new P&L statement to track income, expenses, and profitability</p>
+            <h1 class="text-2xl font-semibold text-gray-900">Create Profit & Loss Report</h1>
+            <p class="text-gray-600 text-sm mt-1">Set the details, date range, and preferences for your P&L report.</p>
         </div>
 
-        <a href="{{ route('reports.financialStatements.profit-and-loss.index') }}" 
-           class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-100 transition">
-            <span class="text-lg -mr-1">←</span>
-            <span>Back to List</span>
+        <a href="{{ route('reports.financialStatements.profit-and-loss.index') }}"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-100 transition">
+            ← Back to List
         </a>
     </div>
 
-    <!-- Main Form Card -->
-    <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+    <!-- Main Container -->
+    <form action="{{ route('reports.financial.profit-and-loss.store') }}" method="POST">
+        @csrf
 
-        <form action="{{ route('reports.financial.profit-and-loss.store') }}" method="POST" class="p-6">
-            @csrf
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- LEFT PANEL -->
+            <div class="lg:col-span-2 space-y-6">
 
-                <!-- LEFT COLUMN -->
-                <div class="lg:col-span-2 space-y-8">
+                <!-- SECTION CARD -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 class="text-lg font-medium text-gray-800 mb-3">Report Details</h2>
 
-                    <!-- REPORT DETAILS -->
-                    <section>
-                        <header class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                            <div class="w-8 h-8 bg-blue-50 text-blue-700 rounded-md flex items-center justify-center font-bold">
-                                R
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-900">Report Details</h2>
-                                <p class="text-sm text-gray-600">Basic information about your report</p>
-                            </div>
-                        </header>
-
-                        <div class="space-y-5">
-
-                            <!-- Title -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-1">Title <span class="text-red-500">*</span></label>
-                                <input type="text"
-                                       id="title"
-                                       name="title"
-                                       value="{{ old('title', 'Profit and Loss Statement') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                       placeholder="e.g., Q3 2025 Profit & Loss Statement"
-                                       required>
-                            </div>
-
-                            <!-- Description -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-1">Description</label>
-                                <input type="text"
-                                       name="description"
-                                       value="{{ old('description') }}"
-                                       placeholder="Optional context for readers"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <p class="text-xs text-gray-500 mt-1">Helps others understand the purpose of this report</p>
-                            </div>
-
+                    <div class="space-y-4">
+                        <!-- Title -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Title <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   name="title"
+                                   id="title"
+                                   value="{{ old('title', 'Profit and Loss Statement') }}"
+                                   class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
+                                   required>
                         </div>
-                    </section>
 
-                    <!-- DATE RANGE -->
-                    <section>
-                        <header class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                            <div class="w-8 h-8 bg-emerald-50 text-emerald-700 rounded-md flex items-center justify-center font-bold">
-                                D
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-900">Date Range</h2>
-                                <p class="text-sm text-gray-600">Choose the reporting period</p>
-                            </div>
-                        </header>
-
-                        <div class="space-y-5">
-
-                            <!-- Quick Presets -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-2">Quick Presets</label>
-                                <div class="flex flex-wrap gap-2">
-                                    <button type="button"
-                                            data-range="this-month"
-                                            class="date-preset px-3 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">
-                                        This Month
-                                    </button>
-                                    <button type="button"
-                                            data-range="last-month"
-                                            class="date-preset px-3 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">
-                                        Last Month
-                                    </button>
-                                    <button type="button"
-                                            data-range="ytd"
-                                            class="date-preset px-3 py-2 text-sm bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">
-                                        Year to Date
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Date Inputs (Modern Version with Flatpickr) -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-                                <!-- Start Date -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-800 mb-2">
-                                        Start Date <span class="text-red-500">*</span>
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        id="from"
-                                        name="from"
-                                        placeholder="Select start date"
-                                        value="{{ old('from', date('Y-m-d')) }}"
-                                        required
-                                        class="cursor-pointer w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <!-- End Date -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-800 mb-2">
-                                        End Date <span class="text-red-500">*</span>
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        id="to"
-                                        name="to"
-                                        placeholder="Select end date"
-                                        value="{{ old('to', date('Y-m-d')) }}"
-                                        required
-                                        class="cursor-pointer w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-
-                                    <p id="clientDateError" class="text-sm text-red-600 mt-1 hidden">
-                                        Start date cannot be after end date
-                                    </p>
-                                </div>
-
-                            </div>
-
+                        <!-- Description -->
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Description</label>
+                            <input type="text"
+                                   name="description"
+                                   value="{{ old('description') }}"
+                                   class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 bg-gray-50 focus:border-blue-500 focus:ring-blue-500"
+                                   placeholder="Optional summary or comments">
                         </div>
-                    </section>
-
-                    <!-- SETTINGS -->
-                    <section>
-                        <header class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                            <div class="w-8 h-8 bg-purple-50 text-purple-700 rounded-md flex items-center justify-center font-bold">
-                                S
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-900">Report Settings</h2>
-                                <p class="text-sm text-gray-600">Choose calculation method</p>
-                            </div>
-                        </header>
-
-                        <div class="space-y-6">
-                            @php $method = old('accounting_method', 'accrual'); @endphp
-
-                            <!-- Accounting Method -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                                <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition
-                                            {{ $method === 'accrual' ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400' }}">
-                                    <input type="radio" name="accounting_method" value="accrual"
-                                           class="mt-1 text-blue-600"
-                                           {{ $method === 'accrual' ? 'checked' : '' }}>
-                                    <div>
-                                        <p class="font-medium text-gray-900">Accrual</p>
-                                        <p class="text-xs text-gray-600">Record revenue & expenses when incurred</p>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition
-                                            {{ $method === 'cash' ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-gray-400' }}">
-                                    <input type="radio" name="accounting_method" value="cash"
-                                           class="mt-1 text-green-600"
-                                           {{ $method === 'cash' ? 'checked' : '' }}>
-                                    <div>
-                                        <p class="font-medium text-gray-900">Cash</p>
-                                        <p class="text-xs text-gray-600">Record only when cash is received or paid</p>
-                                    </div>
-                                </label>
-
-                            </div>
-
-                            <!-- Rounding -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-800 mb-1">Rounding</label>
-                                @php $r = old('rounding', 'off'); @endphp
-                                <select name="rounding"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="off" {{ $r == 'off' ? 'selected' : '' }}>No Rounding</option>
-                                    <option value="nearest" {{ $r == 'nearest' ? 'selected' : '' }}>Nearest</option>
-                                    <option value="1" {{ $r == '1' ? 'selected' : '' }}>Nearest 1</option>
-                                    <option value="10" {{ $r == '10' ? 'selected' : '' }}>Nearest 10</option>
-                                    <option value="100" {{ $r == '100' ? 'selected' : '' }}>Nearest 100</option>
-                                </select>
-                            </div>
-
-                        </div>
-                    </section>
-
-                    <!-- FOOTER NOTES -->
-                    <section>
-                        <header class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                            <div class="w-8 h-8 bg-amber-50 text-amber-700 rounded-md flex items-center justify-center font-bold">
-                                N
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-900">Additional Notes</h2>
-                                <p class="text-sm text-gray-600">Optional text shown at the bottom of report</p>
-                            </div>
-                        </header>
-
-                        <!-- Footer -->
-                        <textarea id="footerTextarea"
-                                  name="footer"
-                                  rows="4"
-                                  maxlength="500"
-                                  placeholder="Optional notes or disclaimers..."
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ old('footer') }}</textarea>
-
-                        <p class="text-xs text-gray-500 mt-1">
-                            <span id="footerCount">0</span>/500 characters
-                        </p>
-                    </section>
-
+                    </div>
                 </div>
 
-                <!-- RIGHT COLUMN (LIVE PREVIEW) -->
-                <aside class="lg:col-span-1">
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 sticky top-20">
+                <!-- DATE RANGE -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Live Preview</h3>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Start Date *</label>
+                            <input type="date"
+                                   id="from"
+                                   name="from"
+                                   value="{{ old('from', date('Y-m-d')) }}"
+                                   class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                                   required>
+                        </div>
 
-                        <div class="space-y-4">
-
-                            <!-- Preview Title -->
-                            <div class="p-3 bg-white rounded-lg shadow-sm border border-gray-200">
-                                <p class="text-xs text-gray-500 uppercase">Title</p>
-                                <p id="previewTitle" class="font-semibold text-gray-900 mt-1">
-                                    {{ old('title', 'Profit and Loss Statement') }}
-                                </p>
-                            </div>
-
-                            <!-- Preview Date Range -->
-                            <div class="p-3 bg-white rounded-lg shadow-sm border border-gray-200">
-                                <p class="text-xs text-gray-500 uppercase">Period</p>
-                                <p id="previewRange" class="text-gray-900 mt-1">
-                                    {{ old('from') }} → {{ old('to') }}
-                                </p>
-                            </div>
-
-                            <!-- Preview Settings -->
-                            <div class="p-3 bg-white rounded-lg shadow-sm border border-gray-200 space-y-2">
-                                <p class="text-xs text-gray-500 uppercase">Settings</p>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Method:</span>
-                                    <span id="previewMethod" class="text-gray-900 font-medium">{{ ucfirst($method) }}</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Rounding:</span>
-                                    <span id="previewRounding" class="text-gray-900 font-medium">{{ $r }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Preview Footer -->
-                            <div class="p-3 bg-white rounded-lg shadow-sm border border-gray-200">
-                                <p class="text-xs text-gray-500 uppercase">Footer</p>
-                                <p id="previewFooter" class="text-sm text-gray-800 mt-1 break-words">
-                                    {{ old('footer') ?: 'No footer text added' }}
-                                </p>
-                            </div>
-
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">End Date *</label>
+                            <input type="date"
+                                   id="to"
+                                   name="to"
+                                   value="{{ old('to', date('Y-m-d')) }}"
+                                   class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                                   required>
+                            <p id="clientDateError" class="text-xs text-red-500 mt-1 hidden">
+                                Start date cannot be after end date.
+                            </p>
                         </div>
 
                     </div>
-                </aside>
+                </div>
 
-            </div>
+                <!-- SETTINGS -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 class="text-lg font-medium text-gray-800 mb-3">Settings</h2>
 
-            <!-- ACTION BUTTONS -->
-            <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    @php $method = old('accounting_method', 'accrual'); @endphp
+                    @php $r = old('rounding', 'off'); @endphp
 
-                <p class="text-sm text-gray-600">Fields with * are required</p>
+                    <!-- Accounting method -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
 
-                <div class="flex gap-3">
-                    <a href="{{ route('reports.financialStatements.profit-and-loss.index') }}"
-                       class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 transition">Cancel</a>
+                        <label class="flex gap-3 p-3 border rounded-lg cursor-pointer transition
+                                  {{ $method == 'accrual' ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400' }}">
+                            <input type="radio" name="accounting_method" value="accrual" {{ $method == 'accrual' ? 'checked' : '' }}>
+                            <div>
+                                <p class="font-medium text-gray-900">Accrual</p>
+                                <p class="text-xs text-gray-600">Recognizes revenue when earned</p>
+                            </div>
+                        </label>
 
-                    <button type="submit"
-                            id="submitButton"
-                            class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                        Create Report
-                    </button>
+                        <label class="flex gap-3 p-3 border rounded-lg cursor-pointer transition
+                                  {{ $method == 'cash' ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-gray-400' }}">
+                            <input type="radio" name="accounting_method" value="cash" {{ $method == 'cash' ? 'checked' : '' }}>
+                            <div>
+                                <p class="font-medium text-gray-900">Cash Basis</p>
+                                <p class="text-xs text-gray-600">Records only when cash moves</p>
+                            </div>
+                        </label>
+
+                    </div>
+
+                    <!-- Rounding -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-700">Rounding</label>
+                        <select name="rounding"
+                                class="mt-1 w-full rounded-lg px-3 py-2 border border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="off" {{ $r=='off' ? 'selected' : '' }}>No rounding</option>
+                            <option value="nearest" {{ $r=='nearest' ? 'selected' : '' }}>Nearest</option>
+                            <option value="1" {{ $r=='1' ? 'selected' : '' }}>Nearest 1</option>
+                            <option value="10" {{ $r=='10' ? 'selected' : '' }}>Nearest 10</option>
+                            <option value="100" {{ $r=='100' ? 'selected' : '' }}>Nearest 100</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- NOTES -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 class="text-lg font-medium text-gray-800 mb-3">Notes (Optional)</h2>
+                    <textarea name="footer"
+                              id="footerTextarea"
+                              rows="4"
+                              maxlength="500"
+                              class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Add any notes or disclaimers here...">{{ old('footer') }}</textarea>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        <span id="footerCount">0</span>/500 characters
+                    </p>
                 </div>
 
             </div>
 
-        </form>
+            <!-- RIGHT PANEL: LIVE PREVIEW -->
+            <div class="lg:col-span-1">
+                <div class="sticky top-20 bg-white border border-gray-200 rounded-xl shadow-sm p-4 space-y-4">
 
-    </div>
+                    <h3 class="text-lg font-medium text-gray-800">Live Preview</h3>
 
+                    <div class="p-3 rounded-lg border bg-gray-50">
+                        <p class="text-xs text-gray-500 uppercase">Title</p>
+                        <p id="previewTitle" class="font-semibold text-gray-900 mt-1">
+                            {{ old('title', 'Profit and Loss Statement') }}
+                        </p>
+                    </div>
 
-    <!-- Scripts for Live Preview + Date Validation -->
+                    <div class="p-3 rounded-lg border bg-gray-50">
+                        <p class="text-xs text-gray-500 uppercase">Period</p>
+                        <p id="previewRange" class="text-gray-800 mt-1">
+                            {{ old('from') }} → {{ old('to') }}
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-lg border bg-gray-50">
+                        <p class="text-xs text-gray-500 uppercase">Method</p>
+                        <p id="previewMethod" class="text-gray-800 mt-1">{{ ucfirst($method) }}</p>
+
+                        <p class="text-xs text-gray-500 uppercase mt-3">Rounding</p>
+                        <p id="previewRounding" class="text-gray-800 mt-1">{{ $r }}</p>
+                    </div>
+
+                    <div class="p-3 rounded-lg border bg-gray-50">
+                        <p class="text-xs text-gray-500 uppercase">Footer</p>
+                        <p id="previewFooter" class="text-gray-700 mt-1">
+                            {{ old('footer') ?: 'No footer text added' }}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="mt-8 flex justify-between items-center border-t pt-6">
+            <p class="text-sm text-gray-600">Fields marked with * are required</p>
+
+            <div class="flex gap-3">
+                <a href="{{ route('reports.financialStatements.profit-and-loss.index') }}"
+                   class="px-5 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition">
+                    Cancel
+                </a>
+
+                <button type="submit"
+                        id="submitButton"
+                        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">
+                    Create Report
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+    <!-- JS Enhancements -->
     <script>
         const titleInput = document.getElementById('title');
         const fromInput = document.getElementById('from');
         const toInput = document.getElementById('to');
-        const footer = document.getElementById('footerTextarea');
+        const footerInput = document.getElementById('footerTextarea');
+
         const previewTitle = document.getElementById('previewTitle');
         const previewRange = document.getElementById('previewRange');
         const previewFooter = document.getElementById('previewFooter');
         const footerCount = document.getElementById('footerCount');
 
         // Update preview title
-        titleInput?.addEventListener('input', () => {
+        titleInput.addEventListener('input', () => {
             previewTitle.textContent = titleInput.value || "Untitled Report";
         });
 
-        // Update preview date range
+        // Update date range preview
         function updateDateRange() {
             previewRange.textContent = `${fromInput.value} → ${toInput.value}`;
         }
-        fromInput?.addEventListener('change', updateDateRange);
-        toInput?.addEventListener('change', updateDateRange);
+        fromInput.addEventListener('change', updateDateRange);
+        toInput.addEventListener('change', updateDateRange);
 
-        // Footer character counter + preview
-        footer?.addEventListener('input', () => {
-            footerCount.textContent = footer.value.length;
-            previewFooter.textContent = footer.value || "No footer text added";
+        // Footer counter
+        footerInput.addEventListener('input', () => {
+            footerCount.textContent = footerInput.value.length;
+            previewFooter.textContent = footerInput.value || "No footer text added";
         });
 
         // Date validation
-        const clientDateError = document.getElementById('clientDateError');
+        const dateError = document.getElementById('clientDateError');
         const submitBtn = document.getElementById('submitButton');
 
         function validateDates() {
             if (fromInput.value > toInput.value) {
-                clientDateError.classList.remove('hidden');
+                dateError.classList.remove('hidden');
                 submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.add('opacity-50');
             } else {
-                clientDateError.classList.add('hidden');
+                dateError.classList.add('hidden');
                 submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.remove('opacity-50');
             }
         }
+        fromInput.addEventListener('change', validateDates);
+        toInput.addEventListener('change', validateDates);
 
-        fromInput?.addEventListener('change', validateDates);
-        toInput?.addEventListener('change', validateDates);
-        validateDates();
-
-
+        // Flatpickr initialization
         document.addEventListener("DOMContentLoaded", function () {
-
-            // Start Date Picker
             flatpickr("#from", {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "F j, Y",
-                allowInput: true,
                 defaultDate: "{{ old('from', date('Y-m-d')) }}"
             });
 
-            // End Date Picker
             flatpickr("#to", {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "F j, Y",
-                allowInput: true,
                 defaultDate: "{{ old('to', date('Y-m-d')) }}"
             });
-
         });
     </script>
 
