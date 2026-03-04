@@ -202,8 +202,8 @@
                                 Amount
                             </label>
                             <input type="text"
-                                   name="amount"
-                                   value="{{ old('amount') }}"
+                                   name="amount" 
+                                   value="{{ old('amount') }}" onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                    class="w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-900"
                                    placeholder="0.00">
                         </div>

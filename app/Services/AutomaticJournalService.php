@@ -80,7 +80,7 @@ class AutomaticJournalService
             'accounting_period_id' => $this->openPeriodIdForDate($businessId, $entryDate),
             'created_by' => $invoice->user_id ?? null,
             'lines' => [
-                ['account_id' => $ar->id, 'debit_amount' => $amount, 'customer_id' => $invoice->customer_id ?? null],
+                ['account_id' => $ar->id, 'debit_amount' => $amount],
                 ['account_id' => $rev->id, 'credit_amount' => $amount],
             ],
         ];
@@ -126,7 +126,7 @@ class AutomaticJournalService
             'lines' => [
                 // Credit note reduces AR: Cr AR; and debits returns/revenue offset.
                 ['account_id' => $offset->id, 'debit_amount' => $amount],
-                ['account_id' => $ar->id, 'credit_amount' => $amount, 'customer_id' => $note->customer_id ?? null],
+                ['account_id' => $ar->id, 'credit_amount' => $amount],
             ],
         ];
 
@@ -192,7 +192,7 @@ class AutomaticJournalService
             'created_by' => $bill->user_id ?? null,
             'lines' => [
                 ['account_id' => $purch->id, 'debit_amount' => $amount],
-                ['account_id' => $ap->id, 'credit_amount' => $amount, 'supplier_id' => $bill->supplier_id ?? null],
+                ['account_id' => $ap->id, 'credit_amount' => $amount],
             ],
         ];
 
@@ -233,7 +233,7 @@ class AutomaticJournalService
                 'created_by' => $payment->user_id ?? null,
                 'lines' => [
                     ['account_id' => $cashAccountId, 'debit_amount' => $amount],
-                    ['account_id' => $ar->id, 'credit_amount' => $amount, 'customer_id' => $payment->customer_id],
+                    ['account_id' => $ar->id, 'credit_amount' => $amount],
                 ],
             ];
 
@@ -265,7 +265,7 @@ class AutomaticJournalService
                 'accounting_period_id' => $this->openPeriodIdForDate($businessId, $entryDate),
                 'created_by' => $payment->user_id ?? null,
                 'lines' => [
-                    ['account_id' => $ap->id, 'debit_amount' => $amount, 'supplier_id' => $payment->supplier_id],
+                    ['account_id' => $ap->id, 'debit_amount' => $amount],
                     ['account_id' => $cashAccountId, 'credit_amount' => $amount],
                 ],
             ];

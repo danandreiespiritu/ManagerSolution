@@ -36,7 +36,6 @@
                                     <th class="px-4 py-2 text-left">Account</th>
                                     <th class="px-4 py-2 text-right">Debit</th>
                                     <th class="px-4 py-2 text-right">Credit</th>
-                                    <th class="px-4 py-2 text-center">Status</th>
                                 </tr>
                             </thead>
 
@@ -47,13 +46,6 @@
                                         <td class="px-4 py-2">{{ $row->name }}</td>
                                         <td class="px-4 py-2 text-right">{{ number_format($row->debit, 2) }}</td>
                                         <td class="px-4 py-2 text-right">{{ number_format($row->credit, 2) }}</td>
-                                        <td class="px-4 py-2 text-center">
-                                            @if($row->status === 'Balanced')
-                                                <span class="text-green-600 font-medium">Balanced</span>
-                                            @else
-                                                <span class="text-red-600 font-medium">Unbalanced</span>
-                                            @endif
-                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -63,13 +55,6 @@
                                     <td class="px-4 py-2" colspan="2">Total</td>
                                     <td class="px-4 py-2 text-right">{{ number_format($totalDebit, 2) }}</td>
                                     <td class="px-4 py-2 text-right">{{ number_format($totalCredit, 2) }}</td>
-                                    <td class="px-4 py-2 text-center">
-                                        @if(abs($totalDebit - $totalCredit) <= 0.01)
-                                            <span class="text-green-600 font-medium">Balanced</span>
-                                        @else
-                                            <span class="text-red-600 font-medium">Unbalanced</span>
-                                        @endif
-                                    </td>
                                 </tr>
                             </tfoot>
                         </table>

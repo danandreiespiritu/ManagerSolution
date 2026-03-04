@@ -25,9 +25,6 @@
                     <thead class="bg-gray-100 border-b">
                         <tr>
                             <th class="px-4 py-2 text-left">Title</th>
-                            <th class="px-4 py-2 text-left">Method</th>
-                            <th class="px-4 py-2 text-left">From</th>
-                            <th class="px-4 py-2 text-left">To</th>
                             <th class="px-4 py-2"></th>
                         </tr>
                     </thead>
@@ -36,9 +33,6 @@
                         @forelse($reports as $r)
                             <tr class="border-t">
                                 <td class="px-4 py-2">{{ $r->title ?? 'Trial Balance' }}</td>
-                                <td class="px-4 py-2 capitalize">{{ $r->method }}</td>
-                                <td class="px-4 py-2">{{ optional($r->from_date)->toDateString() }}</td>
-                                <td class="px-4 py-2">{{ optional($r->to_date)->toDateString() }}</td>
                                 <td class="px-4 py-2 text-right">
                                     <a class="text-blue-600 hover:underline"
                                         href="{{ route('reports.general-ledger.trial-balance.show', $r) }}">

@@ -18,18 +18,15 @@ class ARPostingRule implements PostingRuleInterface
         $hasReceivable = false;
 
         foreach ($lines as $i => $ln) {
-            // require customer_id on receivable (debit) lines
+            // require at least one receivable (debit) line
             $debit = (float) Arr::get($ln, 'debit_amount', 0);
-            if ($debit > 0 && ! Arr::get($ln, 'customer_id')) {
-                throw ValidationException::withMessages(["lines.$i.customer_id" => 'Customer is required for receivable (debit) lines in AR postings.']);
-            }
-            if ($debit > 0 && Arr::get($ln, 'customer_id')) {
+            if ($debit > 0) {
                 $hasReceivable = true;
             }
         }
 
         if (! $hasReceivable) {
-            throw ValidationException::withMessages(['lines' => 'AR postings require at least one receivable line with customer linking.']);
+            throw ValidationException::withMessages(['lines' => 'AR postings require at least one receivable line.']);
         }
 
         return $payload;

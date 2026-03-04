@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/chartofaccounts/pl/{id}/edit-account', [HomeController::class, 'chartofaccountEditPlAccount'])->name('PlAccountEdit');
     Route::put('/chartofaccounts/pl/{id}/update-account', [HomeController::class, 'chartofaccountUpdatePlAccount'])->name('PlAccountUpdate');
     Route::delete('/chartofaccounts/pl/{id}/delete-account', [HomeController::class, 'chartofaccountDestroyPlAccount'])->name('PlAccountDestroy');
+    Route::post('/chartofaccounts/bulk-delete', [HomeController::class, 'chartofaccountBulkDelete'])->name('chartofaccount.bulkDelete');
     
     Route::get('/businesses', [BusinessController::class, 'index'])->name('business.index');
     Route::get('/businesses/{id}/summary', [BusinessController::class, 'summary'])->name('business.summary');
@@ -59,6 +60,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/journal-entries/{id}/edit', [JournalEntryController::class, 'edit'])->name('journal.edit');
     Route::put('/journal-entries/{id}', [JournalEntryController::class, 'update'])->name('journal.update');
     Route::delete('/journal-entries/{id}', [JournalEntryController::class, 'destroy'])->name('journal.destroy');
+    
+    // Journal entry adjustments
+    Route::get('/journal-entries/{id}/adjustments', [JournalEntryController::class, 'showAdjustments'])->name('journal.adjustments');
+    Route::post('/journal-entries/{id}/adjustments/apply', [JournalEntryController::class, 'applyAdjustments'])->name('journal.adjustments.apply');
 
     // Accounting periods
     Route::get('/accounting-periods', [AccountingPeriodController::class, 'index'])->name('accountingperiod.index');

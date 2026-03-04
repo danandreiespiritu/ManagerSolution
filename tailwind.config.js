@@ -15,6 +15,9 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
+        plugins: [
+    require('tailwind-scrollbar'),
+  ],
     },
 
     plugins: [forms],

@@ -74,7 +74,7 @@
 
                         <!-- Amount -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" onkeypress="return event.charCode >= 48 && event.charCode <= 57">Amount</label>
                             <input 
                                 type="text"
                                 name="amount"

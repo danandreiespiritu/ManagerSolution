@@ -68,27 +68,58 @@
                     </h2>
 
                     @php
-                        $balanceSections = [
-                            ['title' => 'Assets', 'total' => $totals['assets'] ?? '-', 'items' => $balanceSheet['Assets'] ?? []],
-                            ['title' => 'Liabilities', 'total' => $totals['liabilities'] ?? '-', 'items' => $balanceSheet['Liabilities'] ?? []],
-                            ['title' => 'Equity', 'total' => $totals['equity'] ?? '-', 'items' => $balanceSheet['Equity'] ?? []],
-                        ];
+                        $balanceOrder = ['Current Assets', 'Current Liabilities', 'Equity'];
+                        $orderedBalanceSections = collect($sections['balance_sheet'])
+                            ->sortBy(fn($s) => array_search($s['name'], $balanceOrder))
+                            ->values();
                     @endphp
 
                     <div class="space-y-6">
-                        @foreach ($balanceSections as $section)
+                        @foreach ($orderedBalanceSections as $group)
+                            @php
+                                // Copy original accounts
+                                $accounts = collect($group['accounts']);
+
+                                // Adjust Equity accounts
+                                if (strtolower($group['name']) === 'equity') {
+                                    $ownerCapital = $accounts->firstWhere('name', 'Owner’s Capital');
+                                    $drawings = $accounts->firstWhere('name', 'Drawings / Owner Withdrawals');
+                                    $retained = $accounts->firstWhere('name', 'Retained Earnings');
+
+                                    $netProfit = floatval(str_replace(',', '', $totals['net'] ?? 0));
+
+                                    if ($ownerCapital) {
+                                        $ownerCapital['balance'] = number_format(abs(floatval(str_replace(',', '', $ownerCapital['balance']))), 2);
+                                    }
+                                    if ($drawings) {
+                                        $drawings['balance'] = number_format(-1 * floatval(str_replace(',', '', $drawings['balance'])), 2);
+                                    }
+                                    if ($retained) {
+                                        $retained['balance'] = number_format($netProfit, 2);
+                                    }
+
+                                    // Rebuild accounts in desired order
+                                    $accounts = collect([$ownerCapital, $drawings, $retained])->filter();
+                                }
+                            @endphp
+
                             <div class="rounded-lg bg-white border border-gray-200 shadow-sm overflow-hidden">
+                                <!-- Group Header -->
                                 <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
                                     <div class="flex justify-between items-center">
-                                        <span class="text-gray-800 font-medium">{{ $section['title'] }}</span>
-                                        <span class="text-gray-600 font-semibold">{{ $section['total'] }}</span>
+                                        <span class="text-gray-800 font-medium">{{ $group['name'] }}</span>
+                                        <span class="text-gray-600 font-semibold">
+                                            {{ number_format($accounts->sum(fn($a) => floatval(str_replace(',', '', $a['balance']))), 2) }}
+                                        </span>
                                     </div>
                                 </div>
+
+                                <!-- Accounts List -->
                                 <ul class="divide-y divide-gray-100 px-6 py-4">
-                                    @forelse ($section['items'] as $line)
+                                    @forelse ($accounts as $acct)
                                         <li class="py-3 flex justify-between text-gray-700">
-                                            <span>{{ $line['label'] }}</span>
-                                            <span class="font-medium text-gray-900">{{ $line['amount'] }}</span>
+                                            <span>{{ $acct['name'] }}</span>
+                                            <span class="font-medium text-gray-900">{{ $acct['balance'] }}</span>
                                         </li>
                                     @empty
                                         <li class="py-6 text-center text-gray-400 italic">No data available</li>
@@ -106,26 +137,42 @@
                     </h2>
 
                     @php
-                        $profitSections = [
-                            ['title' => 'Income', 'total' => $totals['income'] ?? '-', 'items' => $profitLoss['income'] ?? []],
-                            ['title' => 'Expenses', 'total' => $totals['expenses'] ?? '-', 'items' => $profitLoss['expenses'] ?? []],
-                        ];
+                        // Define the order: Income first, Operating Expenses second
+                        $plOrder = ['Income', 'Operating Expenses'];
+                        $orderedPLSections = collect($sections['profit_and_loss'])
+                            ->sortBy(fn($s) => array_search($s['name'], $plOrder) !== false ? array_search($s['name'], $plOrder) : 999)
+                            ->values();
                     @endphp
 
                     <div class="space-y-6">
-                        @foreach ($profitSections as $section)
+                        @foreach ($orderedPLSections as $group)
                             <div class="rounded-lg bg-white border border-gray-200 shadow-sm overflow-hidden">
+
+                                <!-- Group Header -->
                                 <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
                                     <div class="flex justify-between items-center">
-                                        <span class="text-gray-800 font-medium">{{ $section['title'] }}</span>
-                                        <span class="text-gray-600 font-semibold">{{ $section['total'] }}</span>
+                                        <span class="text-gray-800 font-medium">{{ $group['name'] }}</span>
+                                        <span class="text-gray-600 font-semibold">
+                                            @php
+                                                // Compute total dynamically
+                                                $displayTotal = $group['name'] === 'Income'
+                                                    ? (float) str_replace(',', '', $totals['income'] ?? 0)
+                                                    : collect($group['accounts'])->sum(fn($acct) =>
+                                                        (float) str_replace(',', '', $acct['balance'] ?? 0)
+                                                    );
+                                            @endphp
+
+                                            {{ number_format($displayTotal, 2) }}
+                                        </span>
                                     </div>
                                 </div>
+
+                                <!-- Accounts List -->
                                 <ul class="divide-y divide-gray-100 px-6 py-4">
-                                    @forelse ($section['items'] as $line)
+                                    @forelse ($group['accounts'] as $acct)
                                         <li class="py-3 flex justify-between text-gray-700">
-                                            <span>{{ $line['label'] }}</span>
-                                            <span class="font-medium text-gray-900">{{ $line['amount'] }}</span>
+                                            <span>{{ $acct['name'] }}</span>
+                                            <span class="font-medium text-gray-900">{{ $acct['balance'] }}</span>
                                         </li>
                                     @empty
                                         <li class="py-6 text-center text-gray-400 italic">No data available</li>

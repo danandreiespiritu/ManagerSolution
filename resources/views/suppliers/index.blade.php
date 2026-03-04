@@ -158,7 +158,7 @@
                     <input
                         name="supplier_name"
                         value="{{ old('supplier_name') }}"
-                        class="mt-1 w-full rounded-lg border-gray-900 shadow-sm
+                        class="mt-1 w-full rounded-lg border-1 border-slate-300 shadow-sm
                             focus:border-blue-500 focus:ring-blue-500 bg-white px-3 py-2"
                         placeholder="Enter supplier name"
                     />
@@ -174,7 +174,7 @@
                         name="email"
                         type="email"
                         value="{{ old('email') }}"
-                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm
+                        class="mt-1 w-full rounded-lg border-1 border-slate-300 shadow-sm
                             focus:border-blue-500 focus:ring-blue-500 bg-white px-3 py-2"
                         placeholder="name@example.com"
                     />
@@ -189,7 +189,7 @@
                     <input
                         name="supplier_code"
                         value="{{ old('supplier_code') }}"
-                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm
+                        class="mt-1 w-full rounded-lg border-1 border-slate-300 shadow-sm
                             focus:border-blue-500 focus:ring-blue-500 bg-white px-3 py-2"
                         placeholder="SUP-001"
                     />

@@ -25,6 +25,7 @@ class GeneralLedgerService
                 DB::raw('COALESCE(SUM(l.debit_amount - l.credit_amount),0) as balance')
             )
             ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->whereNotNull('l.account_id')
             ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
             ->when($from, fn($q) => $q->where('e.entry_date', '>=', $from))
             ->when($to, fn($q) => $q->where('e.entry_date', '<=', $to))
@@ -35,6 +36,7 @@ class GeneralLedgerService
         $accountIds = $rows->pluck('account_id')->filter()->unique()->values()->all();
 
         $accounts = [];
+        $journalDescriptions = [];
         if (count($accountIds) > 0) {
             $acctRows = DB::table('chart_of_accounts')
                 ->whereIn('id', $accountIds)
@@ -44,14 +46,39 @@ class GeneralLedgerService
             foreach ($acctRows as $id => $r) {
                 $accounts[$id] = $r;
             }
+
+            $descRows = DB::table('journal_entry_lines as l')
+                ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+                ->whereIn('l.account_id', $accountIds)
+                ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+                ->when($from, fn($q) => $q->where('e.entry_date', '>=', $from))
+                ->when($to, fn($q) => $q->where('e.entry_date', '<=', $to))
+                ->select('l.account_id', 'l.description as line_description', 'e.description as entry_description', 'e.entry_date', 'l.id')
+                ->orderByDesc('e.entry_date')
+                ->orderByDesc('l.id')
+                ->get();
+
+            foreach ($descRows as $dr) {
+                $accId = $dr->account_id;
+                if (array_key_exists($accId, $journalDescriptions)) {
+                    continue;
+                }
+
+                $desc = trim((string) ($dr->line_description ?? ''));
+                if ($desc === '') {
+                    $desc = trim((string) ($dr->entry_description ?? ''));
+                }
+                $journalDescriptions[$accId] = $desc !== '' ? $desc : null;
+            }
         }
 
-        return $rows->map(function ($r) use ($accounts) {
+        return $rows->map(function ($r) use ($accounts, $journalDescriptions) {
             $acct = $accounts[$r->account_id] ?? null;
             return (object) [
                 'account_id' => $r->account_id,
                 'account_name' => $acct->account_name ?? null,
                 'account_code' => $acct->account_code ?? null,
+                'journal_description' => $journalDescriptions[$r->account_id] ?? null,
                 'total_debit' => (float) $r->total_debit,
                 'total_credit' => (float) $r->total_credit,
                 'balance' => (float) $r->balance,

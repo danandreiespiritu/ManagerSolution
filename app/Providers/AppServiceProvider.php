@@ -19,6 +19,7 @@ use App\Repositories\ProfitAndLossReport\IProfitAndLossReportRepository;
 use App\Repositories\ProfitAndLossReport\ProfitAndLossReportRepository;
 use App\Repositories\TrialBalanceReport\ITrialBalanceReportRepository;
 use App\Repositories\TrialBalanceReport\TrialBalanceReportRepository;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -91,6 +92,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Page pagination
+        Paginator::useTailwind();
+
         // Push the SetCurrentBusiness middleware into the web group so
         // the current business is available on every web request.
         if ($this->app->bound(\Illuminate\Routing\Router::class)) {

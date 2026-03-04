@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-8">
+    <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             <!-- Header -->
@@ -26,6 +26,7 @@
                                 class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded border border-blue-300">
                                 New Account
                             </a>
+                            <button id="bulkDeleteBtnBl" class="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded border border-red-300">Delete Selected</button>
                         </div>
                     </div>
 
@@ -49,14 +50,14 @@
                                     <div class="bg-white p-3 text-gray-500 text-sm">No accounts in this group.</div>
                                 @else
                                     @foreach($group['accounts'] as $acct)
-                                        <div class="flex items-center justify-between px-4 py-3 border-b last:border-b-0 bg-white hover:bg-gray-50 transition">
+                                            <div class="flex items-center justify-between px-4 py-3 border-b last:border-b-0 bg-white hover:bg-gray-50 transition">
 
-                                            <!-- Account Name -->
-                                            <div class="text-gray-900 text-sm font-medium">
-                                                {{ $acct['name'] }}
-                                            </div>
-
-                                            <!-- Actions -->
+                                                <div class="flex items-center gap-3">
+                                                    <input type="checkbox" class="coa-checkbox" value="{{ $acct['id'] }}">
+                                                    <div class="text-gray-900 text-sm font-medium">{{ $acct['name'] }}</div>
+                                                </div>
+                                            
+                                                <!-- Actions -->
                                             <div class="flex gap-2">
 
                                                 <a href="{{ route('BlAccountEdit', $acct['id']) }}"
@@ -93,7 +94,7 @@
                     <!-- Card Header -->
                     <div class="px-6 py-4 flex items-center justify-between border-b bg-gray-50">
                         <h3 class="text-lg font-semibold text-gray-900">Profit and Loss Statement</h3>
-                        <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2">
                             <a href="{{ route('PlGroupCreate') }}"
                                 class="text-sm bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded border border-green-300">
                                 New Group
@@ -102,6 +103,7 @@
                                 class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded border border-blue-300">
                                 New Account
                             </a>
+                            <button id="bulkDeleteBtnPl" class="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded border border-red-300">Delete Selected</button>
                         </div>
                     </div>
 
@@ -127,9 +129,9 @@
                                     @foreach($group['accounts'] as $acct)
                                         <div class="flex items-center justify-between px-4 py-3 border-b last:border-b-0 bg-white hover:bg-gray-50 transition">
 
-                                            <!-- Account Name -->
-                                            <div class="text-gray-900 text-sm font-medium">
-                                                {{ $acct['name'] }}
+                                            <div class="flex items-center gap-3">
+                                                <input type="checkbox" class="coa-checkbox" value="{{ $acct['id'] }}">
+                                                <div class="text-gray-900 text-sm font-medium">{{ $acct['name'] }}</div>
                                             </div>
 
                                             <!-- Actions -->

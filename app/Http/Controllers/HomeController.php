@@ -20,6 +20,33 @@ class HomeController extends Controller
     ) {
     }
 
+    public function chartofaccountBulkDelete(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $ids = $data['ids'];
+
+        $businessId = null;
+        if (app()->bound('currentBusiness') && ($b = app('currentBusiness'))) {
+            $businessId = $b->id;
+        } elseif (session('current_business_id')) {
+            $businessId = session('current_business_id');
+        }
+
+        $q = ChartofAccounts::whereIn('id', $ids)
+            ->where('user_id', $userId);
+        if ($businessId) $q->where('business_id', $businessId);
+
+        $deleted = $q->delete();
+
+        return redirect()->route('chartofaccountIndex')->with('success', "Deleted {$deleted} accounts.");
+    }
+
     public function sidebar() : View 
     {
         return view('components.sidebar');
@@ -279,7 +306,7 @@ class HomeController extends Controller
         return view('chartofaccount.editPlAccount', compact('account', 'groups'));
     }
 
-    public function chartofaccountUpdatePlAccount(BlsAccountRequest $request, int $id)
+    public function chartofaccountUpdatePlAccount(PlAccountRequest $request, int $id)
     {
         $userId = $request->user()->id;
 
@@ -476,6 +503,8 @@ class HomeController extends Controller
             'account_type' => 'BL',
             'group' => $data['name'],
             'group_category' => $data['category'] ?? null,
+            'account_name' => '',
+            'account_code' => '',
         ];
 
         if (app()->bound('currentBusiness') && ($b = app('currentBusiness'))) {
@@ -501,6 +530,8 @@ class HomeController extends Controller
             'account_type' => 'PL',
             'group' => $data['name'],
             'group_category' => $data['category'] ?? null,
+            'account_name' => '',
+            'account_code' => '',
         ];
 
         if (app()->bound('currentBusiness') && ($b = app('currentBusiness'))) {

@@ -153,7 +153,7 @@
                 <div>
                     <label class="text-xs text-gray-700">Total Amount</label>
                           <input name="total_amount"
-                              value="{{ old('total_amount') }}"
+                              value="{{ old('total_amount') }}" onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                               class="mt-1 p-2 w-full bg-white border border-gray-300 rounded shadow-sm text-gray-900"
                               required />
                 </div>

@@ -137,7 +137,7 @@
                         <!-- Amount -->
                         <div>
                             <label class="block text-sm text-gray-700 font-medium mb-1">Amount</label>
-                            <input type="text" name="total_amount"
+                            <input type="text" name="total_amount" onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                    value="{{ old('total_amount') }}"
                                    placeholder="0.00"
                                    class="w-full px-3 py-2 text-sm border rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" />

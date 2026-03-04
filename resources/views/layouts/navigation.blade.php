@@ -1,13 +1,14 @@
-<nav x-data="{ open: false, showLogoutModal: false }" class="fixed top-0 left-0 md:left-64 right-0 h-20
-            bg-gradient-to-r from-[#0b0b0b] to-[#141414]
-            border-b border-white/5
-            z-30">
+<nav x-data="{ open: false, showLogoutModal: false }" class="fixed top-0 left-0 right-0 md:right-0 p-2
+             bg-gray-100 text-black
+             border-b border-white/5 shadow-lg
+             z-30"
+             :class="$store.sidebar.open ? 'md:left-64' : 'md:left-18'">
 
-    <div class="h-full flex items-center justify-between px-8">
+    <div class="h-full flex items-center justify-between ">
 
         <!-- Left -->
-        <div>
-            <h1 class="text-lg font-semibold text-white">
+        <div class="px-4">
+            <h1 class="text-lg font-semibold ">
                 Hey, {{ Auth::user()->name }}
             </h1>
             <p class="text-xs text-gray-400">
@@ -18,16 +19,17 @@
         <!-- Right -->
         <div class="flex items-center gap-4">
             <!-- Profile Dropdown -->
-            <div x-data="{ profileOpen: false }" class="relative">
+                <div x-data="{ profileOpen: false }" class="relative">
                 <button @click="profileOpen = !profileOpen" 
-                        class="flex items-center gap-2 px-4 py-2 rounded-lg 
+                        class="flex items-center gap-2 px-2 py-2 rounded-lg 
                                transition-all duration-200">
                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
-                                flex items-center justify-center text-white text-sm font-semibold">
-                        {{ substr(Auth::user()->name, 0, 1) }}
+                                flex items-center justify-center text-white
+                         font-semibold">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
-                    <span class="text-sm text-white hidden sm:inline">{{ Auth::user()->name }}</span>
-                    <svg class="w-4 h-4 text-gray-400 transition-transform" 
+                    <span class="text-sm hidden sm:inline">{{ Auth::user()->name }}</span>
+                    <svg class="w-4 h-4  transition-transform" 
                          :class="{'rotate-180': profileOpen}"
                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -54,6 +56,12 @@
                     </div>
 
                     <div class="py-2">
+                        <a href="{{ route('dashboard') }}" 
+                           class="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 
+                                  hover:bg-white/5 transition-colors">
+                            <svg  class="w-4 h-4" xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960" fill="#CCCCCC"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h240v720H200Zm320 0v-360h320v280q0 33-23.5 56.5T760-120H520Zm0-440v-280h240q33 0 56.5 23.5T840-760v200H520Z"/></svg>
+                            Dashboard
+                        </a>
                         <a href="{{ route('profile.edit') }}" 
                            class="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 
                                   hover:bg-white/5 transition-colors">
@@ -81,12 +89,12 @@
             </div>
 
             <!-- Mobile Menu Button -->
-            <button @click="open = !open" class="sm:hidden text-gray-400 hover:text-white">
+            <!-- <button @click="open = !open" class="sm:hidden text-gray-400 hover:text-white">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                           d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
-            </button>
+            </button> -->
         </div>
     </div>
 
@@ -109,6 +117,11 @@
         </div>
 
         <div class="py-2">
+            <a href="{{ route('dashboard') }}" 
+               class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 
+                      {{ request()->routeIs('dashboard') ? 'bg-white/5 text-white' : '' }}">
+                Dashboard
+            </a>
             <a href="{{ route('profile.edit') }}" 
                class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
                 Profile

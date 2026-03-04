@@ -82,26 +82,46 @@
                     </thead>
 
                     <tbody>
-                        @if(count($account->lines) > 0)
-                            @foreach($account->lines as $line)
-                                <tr>
-                                    <td class="text-center">
-                                        {{ $line->date ? \Carbon\Carbon::parse($line->date)->format('m/d/Y') : '' }}
-                                    </td>
-                                    <td>{{ $line->explanation }}</td>
-                                    <td class="text-center">{{ $line->ref }}</td>
-                                    <td class="text-right">{{ $line->debit }}</td>
-                                    <td class="text-right">{{ $line->credit }}</td>
-                                    <td class="text-right">{{ number_format($line->balance, 2, '.', ',') }}</td>
-                                </tr>
-                            @endforeach
-                        @else
+                            {{-- Beginning balance row --}}
                             <tr>
-                                <td colspan="6" class="text-center text-gray-500">
-                                    No transactions for this period
-                                </td>
+                                <td class="text-center">&nbsp;</td>
+                                <td><em>Beginning balance</em></td>
+                                <td class="text-center">&nbsp;</td>
+                                <td class="text-right">&nbsp;</td>
+                                <td class="text-right">&nbsp;</td>
+                                <td class="text-right">{{ number_format($account->beginning_balance ?? 0, 2, '.', ',') }}</td>
                             </tr>
-                        @endif
+
+                            @if(count($account->lines) > 0)
+                                @foreach($account->lines as $line)
+                                    <tr>
+                                        <td class="text-center">
+                                            {{ $line->date ? \Carbon\Carbon::parse($line->date)->format('m/d/Y') : '' }}
+                                        </td>
+                                        <td>{{ $line->explanation }}</td>
+                                        <td class="text-center">{{ $line->ref }}</td>
+                                        <td class="text-right">{{ number_format($line->debit, 2, '.', ',') }}</td>
+                                        <td class="text-right">{{ number_format($line->credit, 2, '.', ',') }}</td>
+                                        <td class="text-right">{{ number_format($line->balance, 2, '.', ',') }}</td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="6" class="text-center text-gray-500">
+                                        No transactions for this period
+                                    </td>
+                                </tr>
+                            @endif
+
+                            {{-- Totals / Ending balance row --}}
+                            <tr>
+                                <td class="text-center">&nbsp;</td>
+                                <td class="font-semibold">Totals</td>
+                                <td class="text-center">&nbsp;</td>
+                                <td class="text-right font-semibold">{{ number_format($account->total_debit ?? 0, 2, '.', ',') }}</td>
+                                <td class="text-right font-semibold">{{ number_format($account->total_credit ?? 0, 2, '.', ',') }}</td>
+                                <td class="text-right font-semibold">{{ number_format($account->ending_balance ?? 0, 2, '.', ',') }}</td>
+                            </tr>
                     </tbody>
                 </table>
             </div>

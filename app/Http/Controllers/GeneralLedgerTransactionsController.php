@@ -21,7 +21,24 @@ class GeneralLedgerTransactionsController extends Controller
 
     public function create(Request $request)
     {
-        $accounts = DB::table('chart_of_accounts')->where('user_id', $request->user()->id)->orderBy('account_code')->get()->map(function ($a) {
+        $businessId = app()->bound('currentBusiness') ? app('currentBusiness')->id : null;
+
+        $accounts = DB::table('chart_of_accounts')
+            ->where('user_id', $request->user()->id)
+            ->when($businessId, fn($q) => $q->where('business_id', $businessId))
+            ->where('is_active', 1)
+            ->where(function ($q) {
+                $q->whereRaw("LOWER(COALESCE(account_type,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(classification,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(account_group,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(`group`,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(cash_flow_category,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(account_name,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(account_name,'')) LIKE '%bank%'")
+                    ->orWhereRaw("LOWER(COALESCE(account_name,'')) LIKE '%petty%'");
+            })
+            ->orderBy('account_code')
+            ->get()->map(function ($a) {
             return (object) ['id' => $a->id, 'name' => $a->account_name ?? $a->name ?? null, 'code' => $a->account_code ?? $a->code ?? null];
         });
 
@@ -60,6 +77,36 @@ class GeneralLedgerTransactionsController extends Controller
         $from = $report->from_date?->format('Y-m-d') ?? null;
         $to = $report->to_date?->format('Y-m-d') ?? null;
 
+        $cashAccountIds = DB::table('chart_of_accounts as a')
+            ->when($businessId, fn($q) => $q->where('a.business_id', $businessId))
+            ->where('a.is_active', 1)
+            ->where(function ($q) {
+                $q->whereRaw("LOWER(COALESCE(a.account_type,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.classification,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_group,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.group,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.cash_flow_category,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_name,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_name,'')) LIKE '%bank%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_name,'')) LIKE '%petty%'");
+            })
+            ->pluck('a.id')
+            ->map(fn($id) => (int)$id)
+            ->all();
+
+        if (empty($cashAccountIds)) {
+            $entries = collect();
+            $accountNames = [];
+            $accountCodes = [];
+            $entryStatus = [];
+            $totalDebit = 0.0;
+            $totalCredit = 0.0;
+            $balance = 0.0;
+            $accountFilterName = null;
+
+            return view('reports.generalLedger.generalLedgerSummary.generalLedgerTransactionsShow', compact('report','from','to','entries','accountNames','accountCodes','entryStatus','totalDebit','totalCredit','balance','accountFilterName'));
+        }
+
         $query = DB::table('journal_entry_lines as l')
             ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
             ->select(
@@ -71,7 +118,8 @@ class GeneralLedgerTransactionsController extends Controller
                 DB::raw('COALESCE(l.description, e.description) as narration'),
                 DB::raw('COALESCE(e.reference_type, e.reference_id, e.id) as reference')
             )
-            ->when($businessId, fn($q) => $q->where('l.business_id', $businessId));
+            ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+            ->whereIn('l.account_id', $cashAccountIds);
 
         if ($from) $query->where('e.entry_date', '>=', $from);
         if ($to) $query->where('e.entry_date', '<=', $to);
@@ -114,7 +162,27 @@ class GeneralLedgerTransactionsController extends Controller
         $to = $report->to_date?->format('Y-m-d') ?? null;
 
 
-        $query = DB::table('journal_entry_lines as l')
+        $cashAccountIds = DB::table('chart_of_accounts as a')
+            ->when($businessId, fn($q) => $q->where('a.business_id', $businessId))
+            ->where('a.is_active', 1)
+            ->where(function ($q) {
+                $q->whereRaw("LOWER(COALESCE(a.account_type,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.classification,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_group,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.group,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.cash_flow_category,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_name,'')) LIKE '%cash%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_name,'')) LIKE '%bank%'")
+                    ->orWhereRaw("LOWER(COALESCE(a.account_name,'')) LIKE '%petty%'");
+            })
+            ->pluck('a.id')
+            ->map(fn($id) => (int)$id)
+            ->all();
+
+        if (empty($cashAccountIds)) {
+            $entries = collect();
+        } else {
+            $query = DB::table('journal_entry_lines as l')
             ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
             ->select(
                 'l.*',
@@ -125,13 +193,15 @@ class GeneralLedgerTransactionsController extends Controller
                 DB::raw('COALESCE(l.description, e.description) as narration'),
                 DB::raw('COALESCE(e.reference_type, e.reference_id, e.id) as reference')
             )
-            ->when($businessId, fn($q) => $q->where('l.business_id', $businessId));
+            ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+            ->whereIn('l.account_id', $cashAccountIds);
 
-        if ($from) $query->where('e.entry_date', '>=', $from);
-        if ($to) $query->where('e.entry_date', '<=', $to);
-        if ($report->account_id) $query->where('l.account_id', $report->account_id);
+            if ($from) $query->where('e.entry_date', '>=', $from);
+            if ($to) $query->where('e.entry_date', '<=', $to);
+            if ($report->account_id) $query->where('l.account_id', $report->account_id);
 
-        $entries = $query->orderBy('e.entry_date')->orderBy('l.id')->get();
+            $entries = $query->orderBy('e.entry_date')->orderBy('l.id')->get();
+        }
 
         $filename = 'gl-transactions-' . now()->format('YmdHis') . '.csv';
         $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => "attachment; filename=\"$filename\"",];

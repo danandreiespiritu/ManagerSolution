@@ -119,7 +119,7 @@
                         </div>
                         <div class="col-span-6">
                             <label class="block text-sm text-black">Amount</label>
-                            <input type="text" name="amount" value="{{ old('amount') }}" class="w-full border rounded px-3 py-2 text-black" placeholder="0.00">
+                            <input type="number" name="amount"  onkeypress="return event.charCode >= 48 && event.charCode <= 57" value="{{ old('amount') }}"  class="w-full border rounded px-3 py-2 text-black" placeholder="0.00">
                         </div>
                     </div>
 

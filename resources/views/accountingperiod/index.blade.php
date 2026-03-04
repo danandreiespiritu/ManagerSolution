@@ -29,7 +29,7 @@
 			@endif
 
 			<!-- Create New Period Card -->
-			<div class="bg-white rounded-xl shadow border border-gray-200 p-6 mb-8">
+			<div class="bg-white rounded-xl shadow border-1 border-slate-200 p-6 mb-8">
 				<h2 class="text-xl font-semibold text-gray-900 mb-4">Create New Period</h2>
 
 				<form method="POST" action="{{ route('accountingperiod.store') }}">
@@ -41,33 +41,33 @@
 						<div>
 							<label class="block text-sm font-medium text-gray-700">Period Name</label>
 							<input type="text" name="period_name" value="{{ old('period_name') }}"
-								class="mt-1 block w-full px-3 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+								class="mt-1 block w-full px-3 py-2 border-1 border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
 						</div>
 
 						<!-- Start Date -->
 						<div>
 							<label class="block text-sm font-medium text-gray-700">Start Date</label>
 							<input type="date" name="start_date" value="{{ old('start_date') }}"
-								class="mt-1 block w-full px-3 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+								class="mt-1 block w-full px-3 py-2 border-1 border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
 						</div>
 
 						<!-- End Date -->
 						<div>
 							<label class="block text-sm font-medium text-gray-700">End Date</label>
 							<input type="date" name="end_date" value="{{ old('end_date') }}"
-								class="mt-1 block w-full px-3 py-2 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+								class="mt-1 block w-full px-3 py-2 border-1 border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
 						</div>
 					</div>
 
 					<!-- Form Buttons -->
 					<div class="mt-6 flex gap-3">
 						<button type="submit"
-							class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">
+							class="px-5 py-2 border-1 border-blue-300 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">
 							Create Period
 						</button>
 
 						<button type="button" onclick="this.form.reset()"
-							class="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow">
+							class="px-5 py-2 border-1 border-slate-300 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg shadow">
 							Reset
 						</button>
 					</div>
@@ -76,7 +76,7 @@
 			</div>
 
 			<!-- Periods Listing -->
-			<div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+			<div class="bg-white rounded-xl shadow border-1 border-slate-300 overflow-hidden">
 
 				<table class="min-w-full divide-y divide-gray-200 text-sm">
 					<thead class="bg-gray-100 sticky top-0">
@@ -85,6 +85,7 @@
 							<th class="px-4 py-3 text-left font-semibold text-gray-800">Start Date</th>
 							<th class="px-4 py-3 text-left font-semibold text-gray-800">End Date</th>
 							<th class="px-4 py-3 text-left font-semibold text-gray-800">Status</th>
+							<th class="px-4 py-3 text-left font-semibold text-gray-800">Actions</th>
 						</tr>
 					</thead>
 
@@ -108,6 +109,16 @@
 											</span>
 										@endif
 									</td>
+
+										<td class="px-4 py-3 text-right">
+											<form method="POST" action="{{ route('accountingperiod.destroy', $p->id) }}" onsubmit="return confirm('Are you sure you want to delete this accounting period?');">
+												@csrf
+												@method('DELETE')
+												<button type="submit" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg">
+													Delete
+												</button>
+											</form>
+										</td>
 								</tr>
 							@endforeach
 						@else
@@ -119,7 +130,7 @@
 						@endif
 					</tbody>
 				</table>
-
+		
 			</div>
 
 		</div>

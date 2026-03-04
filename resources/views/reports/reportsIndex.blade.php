@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="flex min-h-screen bg-gray-50">
+    <div class="flex min-h-screen bg-white rounded-lg">
 
             <div class="flex-1 flex flex-col">
                 <div class="px-6 py-6">
@@ -9,8 +9,8 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         <!-- Financial Statements -->
-                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                            <div class="px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">Financial Statements</div>
+                        <div class="bg-white border-1 border-slate-300 rounded-lg shadow-lg overflow-hidden">
+                            <div class="border-b-1 border-slate-300 px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">Financial Statements</div>
                             <ul class="divide-y divide-gray-100">
                                 <li>
                                     <a href="{{ Route::has('reports.financialStatements.profit-and-loss.index') ? route('reports.financialStatements.profit-and-loss.index') : '#' }}" class="block px-4 py-3 text-sm text-blue-700 hover:bg-gray-50">Profit and Loss Statement</a>
@@ -31,8 +31,8 @@
                         </div>
 
                         <!-- Suppliers -->
-                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                            <div class="px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">Suppliers</div>
+                        <div class="bg-white border-1  border-slate-300 rounded-lg  shadow-lg overflow-hidden">
+                            <div class="border-b-1 border-slate-300 px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">Suppliers</div>
                             <ul class="divide-y divide-gray-100">
                                 <li>
                                     <a href="{{ Route::has('reports.supplier-summary.index') ? route('reports.supplier-summary.index') : '#' }}" class="block px-4 py-3 text-sm text-blue-700 hover:bg-gray-50">Supplier Summary</a>
@@ -46,8 +46,8 @@
                             </ul>
                         </div>
                         <!-- General Ledger -->
-                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                            <div class="px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">General Ledger</div>
+                        <div class="bg-white border-1 border-slate-300 rounded-lg shadow-lg overflow-hidden">
+                            <div class="border-b-1 border-slate-300 px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">General Ledger</div>
                             <ul class="divide-y divide-gray-100">
                                 <li>
                                     <a href="{{ Route::has('reports.general-ledger.trial-balance.index') ? route('reports.general-ledger.trial-balance.index') : '#' }}" class="block px-4 py-3 text-sm text-blue-700 hover:bg-gray-50">Trial Balance</a>
@@ -62,8 +62,8 @@
                         </div>
 
                         <!-- Customers -->
-                        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                            <div class="px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">Customers</div>
+                        <div class="bg-white border-1 border-slate-300 rounded-lg shadow-lg overflow-hidden">
+                            <div class="border-b-1 border-slate-300 px-4 py-2 text-xs font-semibold tracking-wide uppercase text-gray-600 bg-gray-100">Customers</div>
                             <ul class="divide-y divide-gray-100">
                                 <li>
                                     <a href="{{ Route::has('reports.customer-summary.index') ? route('reports.customer-summary.index') : '#' }}" class="block px-4 py-3 text-sm text-blue-700 hover:bg-gray-50">Customer Summary</a>

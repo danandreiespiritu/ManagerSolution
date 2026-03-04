@@ -26,7 +26,7 @@ class LedgerPostingService
      * Expected payload keys:
      * - user_id, business_id, entry_date (Y-m-d), description
      * - reference_type, reference_id, accounting_period_id, created_by
-     * - lines: array of ['account_id','debit_amount'|null,'credit_amount'|null,'customer_id'|null,'supplier_id'|null]
+    * - lines: array of ['account_id','debit_amount'|null,'credit_amount'|null]
      */
     public function post(array $payload)
     {
@@ -112,8 +112,6 @@ class LedgerPostingService
                 'account_id' => $ln->account_id,
                 'debit_amount' => (float) $ln->credit_amount,
                 'credit_amount' => (float) $ln->debit_amount,
-                'customer_id' => $ln->customer_id,
-                'supplier_id' => $ln->supplier_id,
             ];
         }
 
@@ -181,6 +179,7 @@ class LedgerPostingService
         };
 
         $businessId = $payload['business_id'] ?? null;
+        $autoAdjust = $payload['auto_adjust'] ?? false;
 
         $accountIds = [];
         foreach ($lines as $i => $ln) {
@@ -211,15 +210,25 @@ class LedgerPostingService
             throw ValidationException::withMessages(['lines' => 'Entries must contain at least one debit line and one credit line.']);
         }
 
-        if (bccomp($totalDebit, $totalCredit, 2) !== 0) {
-            throw ValidationException::withMessages(['lines' => 'Total debits must equal total credits.']);
+        // Check for imbalance - only require balance if auto_adjust is not enabled
+        $imbalance = bcsub((string)$totalDebit, (string)$totalCredit, 2);
+        if (bccomp($imbalance, '0', 2) !== 0) {
+            if (!$autoAdjust) {
+                throw ValidationException::withMessages(['lines' => 'Total debits must equal total credits. Enable auto-adjust to create an adjustment entry automatically.']);
+            }
         }
 
-        // Validate accounts belong to business and require sub-ledger links for control accounts (AR/AP)
+        // Validate accounts belong to business and enforce control-account restrictions
         $accounts = ChartofAccounts::withoutGlobalScope(\App\Models\Scopes\BusinessScope::class)
             ->whereIn('id', array_values(array_unique($accountIds)))
             ->get()
             ->keyBy('id');
+
+        // Check for duplicate accounts
+        $uniqueAccountIds = array_unique($accountIds);
+        if (count($accountIds) !== count($uniqueAccountIds)) {
+            throw ValidationException::withMessages(['lines' => 'Duplicate accounts are not allowed. Each account can only appear once in a journal entry.']);
+        }
 
         $isPayable = function ($acct) {
             if (!$acct) return false;
@@ -247,13 +256,6 @@ class LedgerPostingService
             }
             if ($businessId && (int) $acct->business_id !== (int) $businessId) {
                 throw ValidationException::withMessages(['lines' => "Account {$acct->account_name} (ID: {$acctId}) does not belong to the selected business."]); 
-            }
-
-            if ($isPayable($acct) && !Arr::get($ln, 'supplier_id')) {
-                throw ValidationException::withMessages(["lines.$i.supplier_id" => "Supplier is required for payable account '{$acct->account_name}'."]);
-            }
-            if ($isReceivable($acct) && !Arr::get($ln, 'customer_id')) {
-                throw ValidationException::withMessages(["lines.$i.customer_id" => "Customer is required for receivable account '{$acct->account_name}'."]);
             }
         }
     }

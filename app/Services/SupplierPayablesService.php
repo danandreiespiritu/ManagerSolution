@@ -61,7 +61,7 @@ class SupplierPayablesService
                 'created_by' => $bill->user_id,
                 'lines' => [
                     ['account_id' => $expenseAccountId, 'debit_amount' => $amount],
-                    ['account_id' => $apAccountId, 'credit_amount' => $amount, 'supplier_id' => $bill->supplier_id],
+                    ['account_id' => $apAccountId, 'credit_amount' => $amount],
                 ],
             ]);
 
@@ -107,7 +107,7 @@ class SupplierPayablesService
                 'created_by' => $note->user_id,
                 'lines' => [
                     ['account_id' => $expenseAccountId, 'debit_amount' => $amount],
-                    ['account_id' => $apAccountId, 'credit_amount' => $amount, 'supplier_id' => $note->supplier_id],
+                    ['account_id' => $apAccountId, 'credit_amount' => $amount],
                 ],
             ]);
 
@@ -164,7 +164,7 @@ class SupplierPayablesService
                 'accounting_period_id' => $periodId,
                 'created_by' => $note->user_id,
                 'lines' => [
-                    ['account_id' => $apAccountId, 'debit_amount' => $amount, 'supplier_id' => $note->supplier_id],
+                    ['account_id' => $apAccountId, 'debit_amount' => $amount],
                     ['account_id' => $offsetAccountId, 'credit_amount' => $amount],
                 ],
             ]);
@@ -222,7 +222,7 @@ class SupplierPayablesService
                 'accounting_period_id' => $periodId,
                 'created_by' => $payment->user_id,
                 'lines' => [
-                    ['account_id' => $apAccountId, 'debit_amount' => $amount, 'supplier_id' => $payment->supplier_id],
+                    ['account_id' => $apAccountId, 'debit_amount' => $amount],
                     ['account_id' => $cashAccountId, 'credit_amount' => $amount],
                 ],
             ]);

@@ -11,7 +11,7 @@ class JournalEntryLine extends Model
     use HasFactory;
     use BelongsToBusiness;
 
-    protected $fillable = ['journal_entry_id','business_id','account_id','debit_amount','credit_amount','customer_id','supplier_id','description'];
+    protected $fillable = ['journal_entry_id','business_id','account_id','account_code','cash_category','debit_amount','credit_amount','description'];
 
     protected $casts = [
         'debit_amount' => 'decimal:2',
@@ -26,16 +26,6 @@ class JournalEntryLine extends Model
     public function account()
     {
         return $this->belongsTo(ChartofAccounts::class, 'account_id');
-    }
-
-    public function customer()
-    {
-        return $this->belongsTo(Customer::class);
-    }
-
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class);
     }
 
     public function business()

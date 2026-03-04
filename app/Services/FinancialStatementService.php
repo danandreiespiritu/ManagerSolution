@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
 
 class FinancialStatementService
@@ -108,9 +109,13 @@ class FinancialStatementService
             ];
 
             $name = strtolower($meta['account_name'] ?? '');
-            if (str_contains($name, 'asset') || str_contains($name, 'cash') || str_contains($name, 'receiv') || strtolower($meta['group'] ?? '') === 'current assets' || strtolower($meta['group_category'] ?? '') === 'assets') {
+            $groupLower = strtolower($meta['group'] ?? '');
+            $groupCatLower = strtolower($meta['group_category'] ?? '');
+
+            // Classify using account name, group name or group category containing asset/liability keywords
+            if (str_contains($name, 'asset') || str_contains($name, 'cash') || str_contains($name, 'receiv') || str_contains($groupLower, 'asset') || str_contains($groupCatLower, 'asset') || $groupLower === 'current assets') {
                 $assets->push((object) array_merge((array)$b, $meta));
-            } elseif (str_contains($name, 'liabil') || str_contains($name, 'payabl') || str_contains($name, 'tax') || strtolower($meta['group_category'] ?? '') === 'liabilities') {
+            } elseif (str_contains($name, 'liabil') || str_contains($name, 'payabl') || str_contains($name, 'tax') || str_contains($groupLower, 'liab') || str_contains($groupCatLower, 'liab') || $groupCatLower === 'liabilities') {
                 $liabilities->push((object) array_merge((array)$b, $meta));
             } else {
                 $equity->push((object) array_merge((array)$b, $meta));
@@ -149,74 +154,148 @@ class FinancialStatementService
      * accounts that have a non-empty `cash_flow_category` and groups them by the
      * category prefix (section) and optional line label after a ':' separator.
      */
-    public function getCashFlow(?int $businessId = null, ?string $from = null, ?string $to = null, string $method = 'indirect'): array
+    public function getCashFlow(?int $businessId = null, ?string $from = null, ?string $to = null, string $method = 'indirect', array $overrides = []): array
     {
-        // fetch account balances for the period (transactions between from..to)
-        $periodBalances = $this->ledger->getAccountBalances($businessId, $from, $to);
-
-        // fetch chart accounts that have a cash_flow_category defined for this business
+        // Build a map of chart accounts (for cash_flow_category lookups)
         $coaQuery = \Illuminate\Support\Facades\DB::table('chart_of_accounts')
-            ->whereNotNull('cash_flow_category');
-        if ($businessId) $coaQuery->where('business_id', $businessId);
+            ->when($businessId, fn($q) => $q->where('business_id', $businessId))
+            ->where('is_active', 1);
         $coaRows = $coaQuery->get()->keyBy('id');
 
-        // Map account id => cash_flow_category
-        $acctMap = [];
-        foreach ($coaRows as $id => $r) {
-            $acctMap[$id] = $r->cash_flow_category;
+        // Determine cash accounts: explicit cash & cash equivalents or name contains 'cash'/'bank'
+        $cashQuery = \Illuminate\Support\Facades\DB::table('chart_of_accounts')
+            ->when($businessId, fn($q) => $q->where('business_id', $businessId))
+            ->where('is_active', 1)
+            ->where(function ($q) {
+                $q->whereRaw("LOWER(COALESCE(cash_flow_category,'')) LIKE '%cash%'")
+                  ->orWhereRaw("LOWER(COALESCE(account_name,'')) LIKE '%cash%'")
+                  ->orWhereRaw("LOWER(COALESCE(account_name,'')) LIKE '%bank%'");
+            });
+        $cashAcctRows = $cashQuery->get()->keyBy('id');
+        $cashAccountIds = array_map('intval', array_keys($cashAcctRows->toArray()));
+
+        if (empty($cashAccountIds)) {
+            return [
+                'sections' => [
+                    'operating' => ['lines' => [], 'total' => 0.0],
+                    'investing' => ['lines' => [], 'total' => 0.0],
+                    'financing' => ['lines' => [], 'total' => 0.0],
+                ],
+                'totals' => ['operating' => 0.0,'investing' => 0.0,'financing' => 0.0],
+                'netIncrease' => 0.0,
+                'cashBeginning' => 0.0,
+                'cashEnding' => 0.0,
+            ];
         }
 
-        // Aggregate lines per section
+        // If overrides provided, allow the user to restrict included accounts (respect explicit overrides)
+        $overrideIds = [];
+        foreach ($overrides as $ov) {
+            $acctId = (int) ($ov['account_id'] ?? 0);
+            if ($acctId > 0) $overrideIds[] = $acctId;
+        }
+        $overrideIds = array_values(array_unique($overrideIds));
+
+        // Build the set of journal entries that involve cash accounts within the period
+        $entryIdsQuery = \Illuminate\Support\Facades\DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+            ->whereIn('l.account_id', $cashAccountIds);
+        if ($from) $entryIdsQuery->where('e.entry_date', '>=', $from);
+        if ($to) $entryIdsQuery->where('e.entry_date', '<=', $to);
+        $entryIds = $entryIdsQuery->distinct()->pluck('l.journal_entry_id')->all();
+
+        // If no journal entries involve cash accounts, return empty structure
+        if (empty($entryIds)) {
+            return [
+                'sections' => [
+                    'operating' => ['lines' => [], 'total' => 0.0],
+                    'investing' => ['lines' => [], 'total' => 0.0],
+                    'financing' => ['lines' => [], 'total' => 0.0],
+                ],
+                'totals' => ['operating' => 0.0,'investing' => 0.0,'financing' => 0.0],
+                'netIncrease' => 0.0,
+                'cashBeginning' => 0.0,
+                'cashEnding' => 0.0,
+            ];
+        }
+
+        // helper to add amount to a named line inside section
         $sections = [
             'operating' => ['lines' => [], 'total' => 0.0],
             'investing' => ['lines' => [], 'total' => 0.0],
             'financing' => ['lines' => [], 'total' => 0.0],
         ];
-
-        // helper to add amount to a named line
         $addLine = function (&$secKey, $lineName, $amount) use (&$sections) {
-            if (! isset($sections[$secKey])) {
-                $sections[$secKey] = ['lines' => [], 'total' => 0.0];
-            }
-            // find existing line
-            $found = null;
+            if (! isset($sections[$secKey])) $sections[$secKey] = ['lines' => [], 'total' => 0.0];
             foreach ($sections[$secKey]['lines'] as &$l) {
-                if ($l['name'] === $lineName) { $found = &$l; break; }
+                if ($l['name'] === $lineName) { $l['amount'] = (float)$l['amount'] + (float)$amount; $sections[$secKey]['total'] = (float) array_sum(array_column($sections[$secKey]['lines'], 'amount')); return; }
             }
-            if ($found === null) {
-                $sections[$secKey]['lines'][] = ['name' => $lineName, 'amount' => (float)$amount];
-            } else {
-                $found['amount'] = (float)$found['amount'] + (float)$amount;
-            }
+            $sections[$secKey]['lines'][] = ['name' => $lineName, 'amount' => (float)$amount];
             $sections[$secKey]['total'] = (float) array_sum(array_column($sections[$secKey]['lines'], 'amount'));
         };
 
-        // For each balance row, if account has cash_flow_category, map it
-        foreach ($periodBalances as $b) {
-            $acctId = $b->account_id ?? null;
-            if (! $acctId) continue;
-            $cf = $acctMap[$acctId] ?? null;
-            if (empty($cf)) continue;
-            // category might be like 'operating:Depreciation' or 'investing'
-            $parts = array_map('trim', explode(':', $cf, 2));
-            $sec = strtolower($parts[0] ?? 'operating');
-            if (! in_array($sec, ['operating','investing','financing'])) {
-                // fall back: try keywords
-                if (str_contains($sec, 'invest')) $sec = 'investing';
-                elseif (str_contains($sec, 'financ')) $sec = 'financing';
-                else $sec = 'operating';
+        $mapSection = static function (?string $raw): string {
+            $val = strtolower(trim((string) $raw));
+            if ($val === '') return 'operating';
+            if (str_contains($val, 'invest')) return 'investing';
+            if (str_contains($val, 'financ')) return 'financing';
+            if (str_contains($val, 'operat')) return 'operating';
+
+            $parts = array_map('trim', explode(':', $val, 2));
+            $head = $parts[0] ?? '';
+            if (str_contains($head, 'invest')) return 'investing';
+            if (str_contains($head, 'financ')) return 'financing';
+            return 'operating';
+        };
+
+        // Use actual cash journal lines so report values match journal entry line amounts.
+        $hasLineCashCategory = Schema::hasColumn('journal_entry_lines', 'cash_category');
+        $selectedCashAccountIds = array_values(array_intersect($cashAccountIds, $overrideIds));
+
+        $cashLinesQuery = DB::table('journal_entry_lines as l')
+            ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+            ->leftJoin('chart_of_accounts as a', 'a.id', '=', 'l.account_id')
+            ->whereIn('l.journal_entry_id', $entryIds)
+            ->whereIn('l.account_id', $cashAccountIds)
+            ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+            ->when(count($selectedCashAccountIds) > 0, fn($q) => $q->whereIn('l.account_id', $selectedCashAccountIds))
+            ->orderBy('e.entry_date')
+            ->orderBy('l.id')
+            ->select(
+                'l.account_id',
+                'l.debit_amount',
+                'l.credit_amount',
+                'l.description as line_description',
+                'e.description as entry_description',
+                'a.account_name',
+                'a.cash_flow_category as account_cash_flow_category'
+            );
+
+        if ($hasLineCashCategory) {
+            $cashLinesQuery->addSelect('l.cash_category as line_cash_category');
+        } else {
+            $cashLinesQuery->addSelect(DB::raw('NULL as line_cash_category'));
+        }
+
+        $cashLines = $cashLinesQuery->get();
+
+        foreach ($cashLines as $line) {
+            $amount = (float) $line->debit_amount - (float) $line->credit_amount;
+            if (abs($amount) < 0.00001) {
+                continue;
             }
-            $line = $parts[1] ?? ($b->account_name ?? 'Other');
 
-            // amount: use the ledger balance for the period. Keep sign as computed by ledger
-            $amt = (float) ($b->balance ?? 0.0);
+            $section = $mapSection($line->line_cash_category ?? $line->account_cash_flow_category ?? null);
+            $lineName = trim((string) ($line->line_description ?? ''));
+            if ($lineName === '') {
+                $lineName = trim((string) ($line->entry_description ?? ''));
+            }
+            if ($lineName === '') {
+                $lineName = (string) ($line->account_name ?? 'Unclassified');
+            }
 
-            // For indirect method, many PL non-cash items will be recorded as expenses (negative balances)
-            // but an expense (debit) should be added back when converting to cash: the signage and
-            // how account balances are stored depends on accounting conventions in this app. We will
-            // preserve the ledger balance and let the view show negatives in parentheses.
-
-            $addLine($sec, $line, $amt);
+            $addLine($section, $lineName, $amount);
         }
 
         // totals
@@ -226,7 +305,7 @@ class FinancialStatementService
             'financing' => $sections['financing']['total'] ?? 0.0,
         ];
 
-        // cash at beginning: balances for 'cash' accounts up to day before 'from'
+        // cash at beginning: compute from journal entry lines (sum of cash account lines up to day before 'from')
         $cashBeginning = 0.0;
         try {
             $before = null;
@@ -235,27 +314,26 @@ class FinancialStatementService
                 $dt->modify('-1 day');
                 $before = $dt->format('Y-m-d');
             }
-            $cashBalancesBefore = $this->ledger->getAccountBalances($businessId, null, $before);
-            foreach ($cashBalancesBefore as $cb) {
-                $name = strtolower($cb->account_name ?? '');
-                if (str_contains($name, 'cash') || str_contains($name, 'bank')) {
-                    $cashBeginning += (float)$cb->balance;
-                }
-            }
+
+            $qb = DB::table('journal_entry_lines as l')
+                ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+                ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+                ->whereIn('l.account_id', $cashAccountIds);
+            if ($before) $qb->where('e.entry_date', '<=', $before);
+            $cashBeginning = (float) ($qb->select(DB::raw('COALESCE(SUM(l.debit_amount - l.credit_amount),0) as amt'))->value('amt') ?? 0.0);
         } catch (\Throwable $e) {
             $cashBeginning = 0.0;
         }
 
-        // cash at end: balances for 'cash' accounts up to 'to'
+        // cash at end: compute from journal entry lines (sum of cash account lines up to 'to')
         $cashEnding = 0.0;
         try {
-            $cashBalancesEnd = $this->ledger->getAccountBalances($businessId, null, $to);
-            foreach ($cashBalancesEnd as $cb) {
-                $name = strtolower($cb->account_name ?? '');
-                if (str_contains($name, 'cash') || str_contains($name, 'bank')) {
-                    $cashEnding += (float)$cb->balance;
-                }
-            }
+            $qb2 = DB::table('journal_entry_lines as l')
+                ->join('journal_entries as e', 'e.id', '=', 'l.journal_entry_id')
+                ->when($businessId, fn($q) => $q->where('l.business_id', $businessId))
+                ->whereIn('l.account_id', $cashAccountIds);
+            if ($to) $qb2->where('e.entry_date', '<=', $to);
+            $cashEnding = (float) ($qb2->select(DB::raw('COALESCE(SUM(l.debit_amount - l.credit_amount),0) as amt'))->value('amt') ?? 0.0);
         } catch (\Throwable $e) {
             $cashEnding = 0.0;
         }

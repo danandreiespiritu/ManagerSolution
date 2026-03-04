@@ -9,6 +9,7 @@ use App\Repositories\BlsAccountandGroup\IBlsAccountRepository;
 use App\Repositories\PlAccountandGroup\IPlAccountRepository;
 use App\Models\JournalEntryLine;
 use App\Http\Controllers\Controller;
+use App\Models\ChartofAccounts;
 
 class BusinessController extends Controller
 {
@@ -70,7 +71,7 @@ class BusinessController extends Controller
         return view('business.edit', ['business' => $biz]);
     }
 
-    // Business financial summary
+    // Business financial summary (revised to match chartofaccount.index)
     public function summary($id)
     {
         $biz = $this->repo->getById(auth()->id(), (int) $id);
@@ -79,13 +80,14 @@ class BusinessController extends Controller
             return redirect()->back()->with('error', 'Business not found.');
         }
 
-        // Ensure the selected business becomes the active tenant for this request
-        // (and subsequent navigation) so all scoped models resolve consistently.
         request()->session()->put('current_business_id', $biz->id);
         app()->instance('currentBusiness', $biz);
 
-        // compute account balances from journal entry lines
-        $lines = JournalEntryLine::where('business_id', $biz->id)
+        $userId = auth()->id();
+        $businessId = $biz->id;
+
+        // Compute account balances from journal entry lines
+        $lines = JournalEntryLine::where('business_id', $businessId)
             ->selectRaw('account_id, SUM(COALESCE(debit_amount,0)) as debit_sum, SUM(COALESCE(credit_amount,0)) as credit_sum')
             ->groupBy('account_id')
             ->get();
@@ -95,6 +97,7 @@ class BusinessController extends Controller
             $accountBalances[$ln->account_id] = (float) $ln->debit_sum - (float) $ln->credit_sum;
         }
 
+        // Initialize totals
         $totals = [
             'assets' => 0.0,
             'liabilities' => 0.0,
@@ -104,78 +107,177 @@ class BusinessController extends Controller
             'net' => 0.0,
         ];
 
-        // Load chart of accounts for the current user using repositories
-        $blRepo = app(IBlsAccountRepository::class);
-        $plRepo = app(IPlAccountRepository::class);
+        // -------------------------------
+        // Balance Sheet Sections (BL)
+        // -------------------------------
+        $blGroups = ChartofAccounts::where('user_id', $userId)
+            ->where('account_type', 'BL')
+            ->whereNotNull('group')
+            ->when($businessId, fn($q) => $q->where('business_id', $businessId))
+            ->pluck('group')
+            ->filter(fn($v) => filled($v))
+            ->unique()
+            ->values();
 
-        $blAccounts = $blRepo->getAll(auth()->id(), $biz->id);
-        $plAccounts = $plRepo->getAll(auth()->id(), $biz->id);
+        $balanceSections = $blGroups->map(function ($group) use ($userId, $businessId, $accountBalances) {
+            $accounts = ChartofAccounts::where('user_id', $userId)
+                ->where('account_type', 'BL')
+                ->where('account_group', $group)
+                ->whereNotNull('account_name')
+                ->when($businessId, fn($q) => $q->where('business_id', $businessId))
+                ->get()
+                ->map(fn($acct) => [
+                    'name' => $acct->account_name,
+                    'id' => $acct->id,
+                    'balance' => number_format($accountBalances[$acct->id] ?? 0, 2),
+                ])
+                ->toArray();
 
-        // Group BL accounts into Assets, Liabilities, Equity
-        $balanceSheet = [
-            'Assets' => [],
-            'Liabilities' => [],
-            'Equity' => [],
-        ];
+            return [
+                'name' => $group,
+                'accounts' => $accounts,
+            ];
+        })->toArray();
 
-        foreach ($blAccounts as $acct) {
-            $category = $acct->group_category ?? $acct->group ?? '';
-            $label = $acct->account_name ?? $acct->account_code ?? 'Account';
-            $amountVal = $accountBalances[$acct->id] ?? 0.0;
-            $amount = number_format($amountVal, 2);
+        // -------------------------------
+        // Profit & Loss Sections (PL)
+        // -------------------------------
+        $plGroups = ChartofAccounts::where('user_id', $userId)
+            ->where('account_type', 'PL')
+            ->whereNotNull('group')
+            ->when($businessId, fn($q) => $q->where('business_id', $businessId))
+            ->pluck('group')
+            ->filter(fn($v) => filled($v))
+            ->unique()
+            ->values();
 
-            $catLower = strtolower((string) $category);
-            if (str_contains($catLower, 'asset')) {
-                $balanceSheet['Assets'][] = ['label' => $label, 'amount' => $amount];
-                $totals['assets'] += $amountVal;
-            } elseif (str_contains($catLower, 'liab')) {
-                $balanceSheet['Liabilities'][] = ['label' => $label, 'amount' => $amount];
-                $totals['liabilities'] += $amountVal;
-            } elseif (str_contains($catLower, 'equity')) {
-                $balanceSheet['Equity'][] = ['label' => $label, 'amount' => $amount];
-                $totals['equity'] += $amountVal;
-            } else {
-                // default to Assets when unknown
-                $balanceSheet['Assets'][] = ['label' => $label, 'amount' => $amount];
-                $totals['assets'] += $amountVal;
+        $profitSections = $plGroups->map(function ($group) use ($userId, $businessId, $accountBalances) {
+
+            $grpLower = strtolower($group);
+
+            // 🔥 Skip building Income accounts here (we'll inject from service)
+            if (str_contains($grpLower, 'income') || str_contains($grpLower, 'revenue')) {
+                return [
+                    'name' => $group,
+                    'accounts' => [], // will be filled later
+                ];
+            }
+
+            // ✅ Keep Expense logic untouched
+            $accounts = ChartofAccounts::where('user_id', $userId)
+                ->where('account_type', 'PL')
+                ->where('account_group', $group)
+                ->whereNotNull('account_name')
+                ->when($businessId, fn($q) => $q->where('business_id', $businessId))
+                ->get()
+                ->map(fn($acct) => [
+                    'name' => $acct->account_name,
+                    'id' => $acct->id,
+                    'balance' => number_format(($accountBalances[$acct->id] ?? 0), 2),
+                ])
+                ->toArray();
+
+            return [
+                'name' => $group,
+                'accounts' => $accounts,
+            ];
+        })->toArray();
+
+        // 🔥 Inject Income accounts using P&L service
+        $plService = app(\App\Services\ProfitAndLossReportService::class);
+
+        $built = $plService->build(
+            $businessId,
+            now()->startOfYear()->format('Y-m-d'),
+            now()->endOfYear()->format('Y-m-d'),
+            'accrual',
+            'off'
+        );
+
+        $incomeAccounts = [];
+
+        $grouped = $built['grouped'] ?? [];
+
+        foreach ($grouped as $groupName => $groupData) {
+            $low = strtolower($groupName);
+
+            if (
+                str_contains($low, 'revenue') ||
+                str_contains($low, 'income') ||
+                str_contains($low, 'sales') ||
+                str_contains($low, 'gain')
+            ) {
+                foreach ($groupData['accounts'] ?? [] as $acct) {
+                    $incomeAccounts[] = [
+                        'name' => $acct['account_name'] ?? $acct['name'] ?? '',
+                        'id' => $acct['account_id'] ?? null,
+                        'balance' => number_format((float) ($acct['amount'] ?? 0), 2),
+                    ];
+                }
             }
         }
 
-        // Group PL accounts into income / expenses
-        $profitLoss = [
-            'income' => [],
-            'expenses' => [],
+        // Replace Income section accounts
+        foreach ($profitSections as &$section) {
+            if (
+                str_contains(strtolower($section['name']), 'income') ||
+                str_contains(strtolower($section['name']), 'revenue')
+            ) {
+                $section['accounts'] = $incomeAccounts;
+            }
+        }
+        unset($section);
+
+        $sections = [
+            'balance_sheet' => $balanceSections,
+            'profit_and_loss' => $profitSections,
         ];
 
-        foreach ($plAccounts as $acct) {
-            $category = $acct->group_category ?? $acct->group ?? '';
-            $label = $acct->account_name ?? $acct->account_code ?? 'Account';
-            $amountVal = $accountBalances[$acct->id] ?? 0.0;
-            $amount = number_format($amountVal, 2);
-
-            $catLower = strtolower((string) $category);
-            if (str_contains($catLower, 'income') || str_contains($catLower, 'revenue')) {
-                $profitLoss['income'][] = ['label' => $label, 'amount' => $amount];
-                $totals['income'] += $amountVal;
-            } else {
-                $profitLoss['expenses'][] = ['label' => $label, 'amount' => $amount];
-                $totals['expenses'] += $amountVal;
+        // -------------------------------
+        // Compute totals from sections
+        // -------------------------------
+        foreach ($sections['balance_sheet'] as $group) {
+            foreach ($group['accounts'] as $acct) {
+                $amt = (float) str_replace(',', '', $acct['balance']);
+                $grpLower = strtolower($group['name']);
+                if (str_contains($grpLower, 'asset')) $totals['assets'] += $amt;
+                elseif (str_contains($grpLower, 'liab')) $totals['liabilities'] += $amt;
+                elseif (str_contains($grpLower, 'equity') || str_contains($grpLower, 'capital')) {
+                    $totals['equity'] += (-1 * $amt); // flip sign (credit-normal)
+                }
+                else $totals['assets'] += $amt; // fallback
             }
         }
 
-        // compute net profit (income - expenses)
+        // Use the SAME service logic as P&L for income
+        $plService = app(\App\Services\ProfitAndLossReportService::class);
+
+        $built = $plService->build(
+            $businessId,
+            now()->startOfYear()->format('Y-m-d'), 
+            now()->endOfYear()->format('Y-m-d'),
+            'accrual', // match your default
+            'off'
+        );
+
+        $totals['income'] = (float) ($built['totalRevenue'] ?? 0);
+        $totals['expenses'] = (float) ($built['totalExpense'] ?? 0);
+
         $totals['net'] = $totals['income'] - $totals['expenses'];
+        $totals['equity'] += $totals['net'];
 
-        // format totals for display
-        foreach (['assets','liabilities','equity','income','expenses','net'] as $k) {
-            $totals[$k] = number_format($totals[$k], 2);
+        // Format totals for display
+        foreach ($totals as $k => $v) {
+            $totals[$k] = number_format($v, 2);
         }
+
+        // Test output
+        // dd($sections);
 
         return view('business.summary', [
             'business' => $biz,
+            'sections' => $sections,
             'totals' => $totals,
-            'balanceSheet' => $balanceSheet,
-            'profitLoss' => $profitLoss,
         ]);
     }
 
